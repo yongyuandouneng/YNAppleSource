@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		00396A861C81654B00667CB8 /* libobjc.A.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC0630554660B00DB518D /* libobjc.A.dylib */; };
 		2E3F8E0F20FC50DE009FDA84 /* NSObject+Extend.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E3F8E0E20FC50DE009FDA84 /* NSObject+Extend.m */; };
+		2E3F8E1220FC9B69009FDA84 /* People.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E3F8E1120FC9B69009FDA84 /* People.m */; };
 		304E5F781F3329E7008E8A5F /* objc-msg-simulator-x86_64.s in Sources */ = {isa = PBXBuildFile; fileRef = 304E5F771F3329E7008E8A5F /* objc-msg-simulator-x86_64.s */; };
 		305B27561C7D9E96005AC125 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 305B27551C7D9E96005AC125 /* main.m */; };
 		305EC7AF1F3304D0004510DB /* objc-msg-arm64.s in Sources */ = {isa = PBXBuildFile; fileRef = 305EC7AE1F3304D0004510DB /* objc-msg-arm64.s */; };
@@ -186,6 +187,11 @@
 /* Begin PBXFileReference section */
 		2E3F8E0D20FC50DE009FDA84 /* NSObject+Extend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSObject+Extend.h"; sourceTree = "<group>"; };
 		2E3F8E0E20FC50DE009FDA84 /* NSObject+Extend.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSObject+Extend.m"; sourceTree = "<group>"; };
+		2E3F8E1020FC9B69009FDA84 /* People.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = People.h; sourceTree = "<group>"; };
+		2E3F8E1120FC9B69009FDA84 /* People.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = People.m; sourceTree = "<group>"; };
+		2E3F8E1420FC9C16009FDA84 /* 消息转发流程图.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "消息转发流程图.png"; sourceTree = "<group>"; };
+		2E3F8E1520FC9C16009FDA84 /* isa结构图.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "isa结构图.png"; sourceTree = "<group>"; };
+		2E3F8E1820FCA04D009FDA84 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		304D5E9D1DFD0DFB00D7D1C0 /* libSystem.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libSystem.tbd; path = usr/lib/libSystem.tbd; sourceTree = SDKROOT; };
 		304D5E9F1DFD0E0B00D7D1C0 /* libSystem.B.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libSystem.B.tbd; path = usr/lib/libSystem.B.tbd; sourceTree = SDKROOT; };
 		304D5EA11DFD0ED200D7D1C0 /* libSystem.B.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSystem.B.dylib; path = ../../../../../usr/lib/libSystem.B.dylib; sourceTree = "<group>"; };
@@ -438,6 +444,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		2E3F8E1320FC9BC7009FDA84 /* images */ = {
+			isa = PBXGroup;
+			children = (
+				2E3F8E1420FC9C16009FDA84 /* 消息转发流程图.png */,
+				2E3F8E1520FC9C16009FDA84 /* isa结构图.png */,
+			);
+			path = images;
+			sourceTree = "<group>";
+		};
 		304D5E9C1DFD0DFB00D7D1C0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -451,9 +466,13 @@
 		305B27541C7D9E96005AC125 /* debug-objc */ = {
 			isa = PBXGroup;
 			children = (
+				2E3F8E1320FC9BC7009FDA84 /* images */,
 				305B27551C7D9E96005AC125 /* main.m */,
+				2E3F8E1820FCA04D009FDA84 /* main.cpp */,
 				2E3F8E0D20FC50DE009FDA84 /* NSObject+Extend.h */,
 				2E3F8E0E20FC50DE009FDA84 /* NSObject+Extend.m */,
+				2E3F8E1020FC9B69009FDA84 /* People.h */,
+				2E3F8E1120FC9B69009FDA84 /* People.m */,
 			);
 			path = "debug-objc";
 			sourceTree = "<group>";
@@ -888,6 +907,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2E3F8E1220FC9B69009FDA84 /* People.m in Sources */,
 				305B27561C7D9E96005AC125 /* main.m in Sources */,
 				2E3F8E0F20FC50DE009FDA84 /* NSObject+Extend.m in Sources */,
 			);

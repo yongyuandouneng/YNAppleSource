@@ -41,9 +41,11 @@
 #if !OBJC_TYPES_DEFINED
 
 /// An opaque type that represents a method in a class definition.
+/// 方法
 typedef struct objc_method *Method;
 
 /// An opaque type that represents an instance variable.
+/// 实力变量
 typedef struct objc_ivar *Ivar;
 
 /// An opaque type that represents a category.
@@ -1780,25 +1782,33 @@ struct objc_protocol_list {
     __unsafe_unretained Protocol * _Nullable list[1];
 };
 
-
+/// 分类结构体
 struct objc_category {
+    /// 昵称
     char * _Nonnull category_name                            OBJC2_UNAVAILABLE;
+    /// 类名
     char * _Nonnull class_name                               OBJC2_UNAVAILABLE;
+    /// 分类中的实例方法列表
     struct objc_method_list * _Nullable instance_methods     OBJC2_UNAVAILABLE;
+    /// 分类中的类方法列表
     struct objc_method_list * _Nullable class_methods        OBJC2_UNAVAILABLE;
+    /// 分类总的协议方法列表
     struct objc_protocol_list * _Nullable protocols          OBJC2_UNAVAILABLE;
 }                                                            OBJC2_UNAVAILABLE;
 
-
+/// 实例属性结构体
 struct objc_ivar {
+    /// 昵称
     char * _Nullable ivar_name                               OBJC2_UNAVAILABLE;
+    /// 类型
     char * _Nullable ivar_type                               OBJC2_UNAVAILABLE;
+    /// 偏移量
     int ivar_offset                                          OBJC2_UNAVAILABLE;
 #ifdef __LP64__
     int space                                                OBJC2_UNAVAILABLE;
 #endif
 }                                                            OBJC2_UNAVAILABLE;
-
+/// 实力属性列表
 struct objc_ivar_list {
     int ivar_count                                           OBJC2_UNAVAILABLE;
 #ifdef __LP64__
@@ -1810,8 +1820,11 @@ struct objc_ivar_list {
 
 
 struct objc_method {
+    /// 方法名
     SEL _Nonnull method_name                                 OBJC2_UNAVAILABLE;
+    /// 方法类型
     char * _Nullable method_types                            OBJC2_UNAVAILABLE;
+    /// 方法指针地址
     IMP _Nonnull method_imp                                  OBJC2_UNAVAILABLE;
 }                                                            OBJC2_UNAVAILABLE;
 
