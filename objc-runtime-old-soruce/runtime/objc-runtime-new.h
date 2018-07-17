@@ -1210,6 +1210,7 @@ struct objc_class : objc_object {
     IMP getLoadMethod();
 
     // Locking: To prevent concurrent realization, hold runtimeLock.
+    /// 是否已经初始化（加载到内存）
     bool isRealized() {
         return data()->flags & RW_REALIZED;
     }

@@ -380,6 +380,7 @@ static NXMapTable *unattachedCategories(void)
 * Records an unattached category.
 * Locking: runtimeLock must be held by the caller.
 **********************************************************************/
+/// 把分类和类进行关联
 static void addUnattachedCategoryForClass(category_t *cat, Class cls, 
                                           header_info *catHeader)
 {
@@ -635,6 +636,7 @@ attachCategories(Class cls, category_list *cats, bool flush_caches)
         malloc(cats->count * sizeof(*protolists));
 
     // Count backwards through cats to get newest categories first
+    // 生成了所有method的list之后，调用attachMethodLists将所有方法前序添加进类的方法的数组中，也就是说，如果原来类的方法是a,b,c，类别的方法是1,2,3，那么插入之后的方法将会是1,2,3,a,b,c，也就是说，原来类的方法被category的方法覆盖了，但被覆盖的方法确实还在那里。
     int mcount = 0;
     int propcount = 0;
     int protocount = 0;
@@ -771,7 +773,7 @@ static void remethodizeClass(Class cls)
             _objc_inform("CLASS: attaching categories to class '%s' %s", 
                          cls->nameForLogging(), isMeta ? "(meta)" : "");
         }
-        
+        /// 关联分类
         attachCategories(cls, cats, true /*flush caches*/);        
         free(cats);
     }
@@ -1205,6 +1207,7 @@ static void addRemappedClass(Class oldcls, Class newcls)
 * Returns nil if cls is ignored because of weak linking.
 * Locking: runtimeLock must be read- or write-locked by the caller
 **********************************************************************/
+// 通过 remapClass 获取类对象指针
 static Class remapClass(Class cls)
 {
     runtimeLock.assertLocked();
@@ -1421,6 +1424,7 @@ static void removeRootClass(Class cls)
 * Adds subcls as a subclass of supercls.
 * Locking: runtimeLock must be held by the caller.
 **********************************************************************/
+/// 父类添加子类
 static void addSubclass(Class supercls, Class subcls)
 {
     runtimeLock.assertWriting();
@@ -1714,6 +1718,7 @@ static void reconcileInstanceVariables(Class cls, Class supercls, const class_ro
 * Returns the real class structure for the class. 
 * Locking: runtimeLock must be write-locked by the caller
 **********************************************************************/
+/// 初始化类
 static Class realizeClass(Class cls)
 {
     runtimeLock.assertWriting();
@@ -1762,6 +1767,7 @@ static Class realizeClass(Class cls)
     // Realize superclass and metaclass, if they aren't already.
     // This needs to be done after RW_REALIZED is set above, for root classes.
     // This needs to be done after class index is chosen, for root metaclasses.
+    /// 递归初始化父类和元类
     supercls = realizeClass(remapClass(cls->superclass));
     metacls = realizeClass(remapClass(cls->ISA()));
 
@@ -1820,12 +1826,13 @@ static Class realizeClass(Class cls)
     }
 
     // Connect this class to its superclass's subclass lists
+    /// 添加父类 和 根类
     if (supercls) {
         addSubclass(supercls, cls);
     } else {
         addRootClass(cls);
     }
-
+    /// 关联分类
     // Attach categories
     methodizeClass(cls);
 
@@ -2516,9 +2523,10 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
     }
 
     ts.log("IMAGE TIMES: fix up @protocol references");
-
+    /// 入口对类的处理
     // Realize non-lazy classes (for +load methods and static instances)
     for (EACH_HEADER) {
+        /// 去数据段取出来数据 进行初始化
         classref_t *classlist = 
             _getObjc2NonlazyClassList(hi, &count);
         for (i = 0; i < count; i++) {
@@ -2540,7 +2548,7 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
                 cls->ISA()->cache._occupied = 0;
             }
 #endif
-
+            /// 实例化类
             realizeClass(cls);
         }
     }
@@ -2557,8 +2565,9 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
     }    
 
     ts.log("IMAGE TIMES: realize future classes");
-
-    // Discover categories. 
+    
+    // Discover categories.
+    /// 这里加载分类
     for (EACH_HEADER) {
         category_t **catlist = 
             _getObjc2CategoryList(hi, &count);
@@ -2579,7 +2588,7 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
                 }
                 continue;
             }
-
+            /// 处理分类
             // Process this category. 
             // First, register the category with its target class. 
             // Then, rebuild the class's method lists (etc) if 
@@ -2588,6 +2597,7 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
             if (cat->instanceMethods ||  cat->protocols  
                 ||  cat->instanceProperties) 
             {
+                /// 把分类和实例对象进行关联
                 addUnattachedCategoryForClass(cat, cls, hi);
                 if (cls->isRealized()) {
                     remethodizeClass(cls);
@@ -2603,6 +2613,7 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
             if (cat->classMethods  ||  cat->protocols  
                 ||  (hasClassProperties && cat->_classProperties)) 
             {
+                /// 把分类和类对象进行关联
                 addUnattachedCategoryForClass(cat, cls->ISA(), hi);
                 if (cls->ISA()->isRealized()) {
                     remethodizeClass(cls->ISA());

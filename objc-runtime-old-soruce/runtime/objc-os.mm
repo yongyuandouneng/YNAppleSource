@@ -574,6 +574,7 @@ map_images_nolock(unsigned mhCount, const char * const mhPaths[],
     }
 
     if (hCount > 0) {
+        /// 读数据
         _read_images(hList, hCount, totalClasses, unoptimizedTotalClasses);
     }
 
@@ -872,6 +873,13 @@ void _objc_atfork_child()
 * Called by libSystem BEFORE library initialization time
 **********************************************************************/
 /// 运行时库初始化的入口，在library加载前由libSystem dyld调用，进行初始化操作
+/*
+简单总结
+
+整个事件由dyld主导，完成运行环境的初始化后，配合ImageLoader将二进制文件按格式加载到内存，
+动态链接依赖库，并由runtime负责加载成objc定义的结构，所有初始化工作结束后，dyld调用真正的main函数。
+值得说明的是，这个过程远比写出来的要复杂，这里只提到了runtime这个分支，还有像GCD、XPC等重头的系统库初始化分支没有提及（当然，有缓存机制在，它们也不会玩命初始化），总结起来就是main函数执行之前，系统做了茫茫多的加载和初始化工作，但都被很好的隐藏了，我们无需关心。
+ */
 void _objc_init(void)
 {
     static bool initialized = false;
