@@ -35,21 +35,26 @@
 
 #if !OBJC_TYPES_DEFINED
 /// An opaque type that represents an Objective-C class.
+/// 类对象结构体
 typedef struct objc_class *Class;
 
 /// Represents an instance of a class.
+/// 实例对象
 struct objc_object {
     Class _Nonnull isa  OBJC_ISA_AVAILABILITY;
 };
 
 /// A pointer to an instance of a class.
+/// id指针指向类对象
 typedef struct objc_object *id;
 #endif
 
 /// An opaque type that represents a method selector.
+/// 方法选择器
 typedef struct objc_selector *SEL;
 
-/// A pointer to the function of a method implementation. 
+/// A pointer to the function of a method implementation.
+/// 函数指针地址
 #if !OBJC_OLD_DISPATCH_PROTOTYPES
 typedef void (*IMP)(void /* id, SEL, ... */ ); 
 #else

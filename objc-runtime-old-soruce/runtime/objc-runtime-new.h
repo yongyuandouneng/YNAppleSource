@@ -1322,13 +1322,19 @@ struct swift_class_t : objc_class {
     }
 };
 
-
+/// 分类结构体
 struct category_t {
+    /// 类名
     const char *name;
+    /// 要扩展的类对象，编译期间这个值是不会有的，在app被runtime加载时才会根据name对应到类对象
     classref_t cls;
+    /// 这个category所有的-方法
     struct method_list_t *instanceMethods;
+    /// 这个category所有的+方法
     struct method_list_t *classMethods;
+    /// 这个category实现的protocol，比较不常用在category里面实现协议，但是确实支持的
     struct protocol_list_t *protocols;
+    /// 这个category所有的property，这也是category里面可以定义属性的原因，不过这个property不会@synthesize实例变量，一般有需求添加实例变量属性时会采用objc_setAssociatedObject和objc_getAssociatedObject方法绑定方法绑定，不过这种方法生成的与一个普通的实例变量完全是两码事。
     struct property_list_t *instanceProperties;
     // Fields below this point are not always present on disk.
     struct property_list_t *_classProperties;

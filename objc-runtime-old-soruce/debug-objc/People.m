@@ -9,7 +9,6 @@
 
 @implementation People
 
-
 - (void)dealloc {
     NSLog(@"---People 调用析构函数");
 }

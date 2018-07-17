@@ -8,17 +8,15 @@
 
 #import <Foundation/Foundation.h>
 #import "People.h"
+#import "NSObject+Extend.h"
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
         
-        __weak id objc = [[NSObject alloc] init];
+        People *people = [[People alloc] init];
+        people.customName = @"哈哈";
         
-//        NSMutableArray *array = [NSMutableArray array];
-        
-//        People *people = [[People alloc] init];
-//        people.name = @"小明";
-//        NSLog(@"name = %@", people.name);
+        NSLog(@"--- %@", people.customName);
         
     }
     return 0;

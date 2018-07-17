@@ -193,6 +193,7 @@ using namespace objc_references_support;
 spinlock_t AssociationsManagerLock;
 
 class AssociationsManager {
+    /// manager 里面 有一张 hash 表
     // associative references: object pointer -> PtrPtrHashMap.
     static AssociationsHashMap *_map;
 public:
@@ -245,12 +246,12 @@ id _object_get_associative_reference(id object, void *key) {
     }
     return value;
 }
-
+/// 根据plicy对值进行操作
 static id acquireValue(id value, uintptr_t policy) {
     switch (policy & 0xFF) {
-    case OBJC_ASSOCIATION_SETTER_RETAIN:
+    case OBJC_ASSOCIATION_SETTER_RETAIN: /// retain
         return objc_retain(value);
-    case OBJC_ASSOCIATION_SETTER_COPY:
+    case OBJC_ASSOCIATION_SETTER_COPY:  /// copy
         return ((id(*)(id, SEL))objc_msgSend)(value, SEL_copy);
     }
     return value;
@@ -270,10 +271,14 @@ struct ReleaseValue {
 
 void _object_set_associative_reference(id object, void *key, id value, uintptr_t policy) {
     // retain the new value (if any) outside the lock.
+    /// 定义关联对象
     ObjcAssociation old_association(0, nil);
+    /// 取值
     id new_value = value ? acquireValue(value, policy) : nil;
     {
+        /// 关联对象Manager
         AssociationsManager manager;
+        /// 关联表创建
         AssociationsHashMap &associations(manager.associations());
         disguised_ptr_t disguised_object = DISGUISE(object);
         if (new_value) {

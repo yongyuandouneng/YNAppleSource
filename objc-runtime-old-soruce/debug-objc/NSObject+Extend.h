@@ -9,4 +9,6 @@
 
 @interface NSObject (Extend)
 
+@property (nonatomic, copy) NSString *customName;
+
 @end

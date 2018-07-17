@@ -30,7 +30,8 @@
 #ifndef OBJC_SUPER
 #define OBJC_SUPER
 
-/// Specifies the superclass of an instance. 
+/// Specifies the superclass of an instance.
+/// 父类
 struct objc_super {
     /// Specifies an instance of a class.
     __unsafe_unretained _Nonnull id receiver;
@@ -56,6 +57,7 @@ struct objc_super {
  * These functions must be cast to an appropriate function pointer type 
  * before being called. 
  */
+/// 消息发送 objc_msgSend 和 objc_msgSendSuper
 #if !OBJC_OLD_DISPATCH_PROTOTYPES
 OBJC_EXPORT void
 objc_msgSend(void /* id self, SEL op, ... */ )
@@ -113,12 +115,13 @@ objc_msgSendSuper(struct objc_super * _Nonnull super, SEL _Nonnull op, ...)
  * These functions must be cast to an appropriate function pointer type 
  * before being called. 
  */
+/// 消息发送带返回值 返回 结构体
 #if !OBJC_OLD_DISPATCH_PROTOTYPES
 OBJC_EXPORT void
 objc_msgSend_stret(void /* id self, SEL op, ... */ )
     OBJC_AVAILABLE(10.0, 2.0, 9.0, 1.0, 2.0)
     OBJC_ARM64_UNAVAILABLE;
-
+/// 父类消息发送带返回值 返回 结构体
 OBJC_EXPORT void
 objc_msgSendSuper_stret(void /* struct objc_super *super, SEL op, ... */ )
     OBJC_AVAILABLE(10.0, 2.0, 9.0, 1.0, 2.0)
@@ -165,7 +168,7 @@ objc_msgSendSuper_stret(struct objc_super * _Nonnull super,
  * before being called. 
  */
 #if !OBJC_OLD_DISPATCH_PROTOTYPES
-
+/// 消息发送 返回浮点数
 # if defined(__i386__)
 
 OBJC_EXPORT void
