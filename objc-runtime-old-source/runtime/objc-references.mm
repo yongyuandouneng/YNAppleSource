@@ -317,15 +317,18 @@ void _object_set_associative_reference(id object, void *key, id value, uintptr_t
     // release the old value (outside of the lock).
     if (old_association.hasValue()) ReleaseValue()(old_association);
 }
-
+/// 根据对象来移除里面的关联属性
 void _object_remove_assocations(id object) {
     vector< ObjcAssociation,ObjcAllocator<ObjcAssociation> > elements;
     {
+        /// 关联对象管理者
         AssociationsManager manager;
+        /// 存放关联对象的HashMap
         AssociationsHashMap &associations(manager.associations());
         if (associations.size() == 0) return;
         disguised_ptr_t disguised_object = DISGUISE(object);
         AssociationsHashMap::iterator i = associations.find(disguised_object);
+        /// 移除操作
         if (i != associations.end()) {
             // copy all of the associations that need to be removed.
             ObjectAssociationMap *refs = i->second;

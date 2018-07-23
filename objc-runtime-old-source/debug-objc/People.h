@@ -11,4 +11,6 @@
 
 @property (nonatomic, copy) NSString *name;
 
+@property (nonatomic, weak) NSString *test;
+
 @end

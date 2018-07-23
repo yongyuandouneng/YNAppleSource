@@ -15,8 +15,11 @@ int main(int argc, const char * argv[]) {
         
         People *people = [[People alloc] init];
         people.customName = @"哈哈";
+        people.test = @"666";
+//        NSLog(@"--- %@", people.customName);
         
-        NSLog(@"--- %@", people.customName);
+//        __weak NSString *test = @"11111";
+        
         
     }
     return 0;

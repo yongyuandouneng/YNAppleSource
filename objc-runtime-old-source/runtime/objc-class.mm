@@ -451,7 +451,8 @@ static void object_cxxDestructFromClass(id obj, Class cls)
     // Call cls's dtor first, then superclasses's dtors.
 
     for ( ; cls; cls = cls->superclass) {
-        if (!cls->hasCxxDtor()) return; 
+        if (!cls->hasCxxDtor()) return;
+        /// 找到 cxx_destruct 并且调用
         dtor = (void(*)(id))
             lookupMethodInClassAndLoadCache(cls, SEL_cxx_destruct);
         if (dtor != (void(*)(id))_objc_msgForward_impcache) {
@@ -459,6 +460,7 @@ static void object_cxxDestructFromClass(id obj, Class cls)
                 _objc_inform("CXX: calling C++ destructors for class %s", 
                              cls->nameForLogging());
             }
+            /// 函数指针调用
             (*dtor)(obj);
         }
     }

@@ -289,7 +289,7 @@ objc_retain_autorelease(id obj)
     return objc_autorelease(objc_retain(obj));
 }
 
-
+/// strong - 先retain 新值 再 释放旧值
 void
 objc_storeStrong(id *location, id obj)
 {
@@ -1638,6 +1638,7 @@ objc_object::sidetable_clearDeallocating()
 #if __OBJC2__
 
 __attribute__((aligned(16)))
+/// retain 引用计数 + 1
 id 
 objc_retain(id obj)
 {
@@ -1648,7 +1649,8 @@ objc_retain(id obj)
 
 
 __attribute__((aligned(16)))
-void 
+void
+/// release 引用计数 - 1
 objc_release(id obj)
 {
     if (!obj) return;
@@ -2341,7 +2343,7 @@ void arr_init(void)
 - (NSUInteger)retainCount {
     return ((id)self)->rootRetainCount();
 }
-
+/// 分配内存
 + (id)alloc {
     return _objc_rootAlloc(self);
 }
@@ -2355,7 +2357,7 @@ void arr_init(void)
 + (id)init {
     return (id)self;
 }
-
+/// 初始化
 - (id)init {
     return _objc_rootInit(self);
 }
@@ -2366,6 +2368,7 @@ void arr_init(void)
 
 
 // Replaced by NSZombies
+/// 当引用计数为0时 会调用析构函数 dealloc -> objc_rootDealloc -> object_dispose -> objc_destructInstance
 - (void)dealloc {
     _objc_rootDealloc(self);
 }

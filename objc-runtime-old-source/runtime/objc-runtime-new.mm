@@ -4479,7 +4479,7 @@ static method_t *search_method_list(const method_list_t *mlist, SEL sel)
 
     return nil;
 }
-
+/// 查找方法列表 但不查找super class 的方法列表
 static method_t *
 getMethodNoSuper_nolock(Class cls, SEL sel)
 {
@@ -4488,7 +4488,7 @@ getMethodNoSuper_nolock(Class cls, SEL sel)
     assert(cls->isRealized());
     // fixme nil cls? 
     // fixme nil sel?
-
+    ///
     for (auto mlists = cls->data()->methods.beginLists(), 
               end = cls->data()->methods.endLists(); 
          mlists != end;
@@ -4611,6 +4611,7 @@ IMP _class_lookupMethodAndLoadCache3(id obj, SEL sel, Class cls)
 *   must be converted to _objc_msgForward or _objc_msgForward_stret.
 *   If you don't want forwarding at all, use lookUpImpOrNil() instead.
 **********************************************************************/
+/// 查找方法或者转发
 IMP lookUpImpOrForward(Class cls, SEL sel, id inst, 
                        bool initialize, bool cache, bool resolver)
 {
@@ -4769,13 +4770,14 @@ IMP lookupMethodInClassAndLoadCache(Class cls, SEL sel)
     assert(sel == SEL_cxx_construct  ||  sel == SEL_cxx_destruct);
 
     // Search cache first.
+    /// 先查找缓存表
     imp = cache_getImp(cls, sel);
     if (imp) return imp;
 
     // Cache miss. Search method list.
 
     rwlock_reader_t lock(runtimeLock);
-
+    /// 查找方法列表 但不查找super class 的方法列表
     meth = getMethodNoSuper_nolock(cls, sel);
 
     if (meth) {
@@ -6311,16 +6313,22 @@ object_copyFromZone(id oldObj, size_t extraBytes, void *zone)
 * Removes associative references.
 * Returns `obj`. Does nothing if `obj` is nil.
 **********************************************************************/
+/// 销毁实例对象
 void *objc_destructInstance(id obj) 
 {
     if (obj) {
         // Read all of the flags at once for performance.
+        /// 判断是否有析构函数
         bool cxx = obj->hasCxxDtor();
+        /// 判断是否有关联对象
         bool assoc = obj->hasAssociatedObjects();
 
         // This order is important.
+        /// 最终找到 L_cxx_destruct 函数销毁实例
         if (cxx) object_cxxDestruct(obj);
+        /// 移除关联属性
         if (assoc) _object_remove_assocations(obj);
+        /// 清理资源，eg: weak表清理 置nil
         obj->clearDeallocating();
     }
 
@@ -6337,8 +6345,8 @@ id
 object_dispose(id obj)
 {
     if (!obj) return nil;
-
-    objc_destructInstance(obj);    
+    /// 自毁实例对象
+    objc_destructInstance(obj);
     free(obj);
 
     return nil;

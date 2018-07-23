@@ -48,7 +48,13 @@ public:
     void set(cache_key_t newKey, IMP newImp);
 };
 
-
+/**
+ * objc_cache的定义看起来很简单，它包含了下面三个变量：
+ 1)、mask：可以认为是当前能达到的最大index（从0开始的），所以缓存的size（total）是mask+1
+ 2)、occupied：被占用的槽位，因为缓存是以散列表的形式存在的，所以会有空槽，而occupied表示当前被占用的数目
+ 3)、buckets：用数组表示的hash表，cache_entry类型，每一个cache_entry代表一个方法缓存
+ (buckets定义在objc_cache的最后，说明这是一个可变长度的数组)
+ */
 struct cache_t {
     struct bucket_t *_buckets;
     mask_t _mask;
@@ -1060,11 +1066,14 @@ public:
     }
 };
 
-
+/// 类对象继承了实例对象结构体
 struct objc_class : objc_object {
     // Class ISA;
+    /// 父类
     Class superclass;
+    /// 方法缓存
     cache_t cache;             // formerly cache pointer and vtable
+    /// uintptr_t nonpointer存储类方法,属性,遵从协议等数据.
     class_data_bits_t bits;    // class_rw_t * plus custom rr/alloc flags
 
     class_rw_t *data() { 
@@ -1145,7 +1154,7 @@ struct objc_class : objc_object {
         bits.setHasCxxDtor();
     }
 
-
+    /// 是否是swift
     bool isSwift() {
         return bits.isSwift();
     }

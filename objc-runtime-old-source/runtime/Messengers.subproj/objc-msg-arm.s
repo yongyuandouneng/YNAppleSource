@@ -422,8 +422,20 @@ LExit$0:
  * Forwarding returned in Z flag
  * r9 reserved for our use but not used
  *
+ 从代码中可以看到，objc_msgSend（就arm平台而言）的消息分发分为以下几个步骤：
+ 
+ 判断receiver是否为nil，也就是objc_msgSend的第一个参数self，也就是要调用的那个方法所属对象
+ 从缓存里寻找，找到了则分发，否则
+ 利用objc-class.mm中_class_lookupMethodAndLoadCache3（为什么有个这么奇怪的方法。本文末尾会解释）方法去寻找selector
+ 
+ 如果支持GC，忽略掉非GC环境的方法（retain等）
+ 从本class的method list寻找selector，如果找到，填充到缓存中，并返回selector，否则
+ 寻找父类的method list，并依次往上寻找，直到找到selector，填充到缓存中，并返回selector，否则
+ 调用_class_resolveMethod，如果可以动态resolve为一个selector，不缓存，方法返回，否则
+ 转发这个selector，否则
+ 报错，抛出异常
  ********************************************************************/
-
+    /// 消息发送的实现 汇编
 	ENTRY _objc_msgSend
 	MESSENGER_START
 	

@@ -414,6 +414,7 @@ objc_object::clearDeallocating()
 inline void
 objc_object::rootDealloc()
 {
+    /// 这里面只是进行一些判断 和释放
     if (isTaggedPointer()) return;  // fixme necessary?
 
     if (fastpath(isa.nonpointer  &&  
@@ -440,7 +441,7 @@ objc_object::retain()
     if (fastpath(!ISA()->hasCustomRR())) {
         return rootRetain();
     }
-
+    
     return ((id(*)(objc_object *, SEL))objc_msgSend)(this, SEL_retain);
 }
 
@@ -532,7 +533,7 @@ objc_object::release()
         rootRelease();
         return;
     }
-
+    
     ((void(*)(objc_object *, SEL))objc_msgSend)(this, SEL_release);
 }
 
@@ -558,7 +559,7 @@ objc_object::rootReleaseShouldDealloc()
 {
     return rootRelease(false, false);
 }
-
+/// rootRelease 释放，同时进而调用dealloc方法
 ALWAYS_INLINE bool 
 objc_object::rootRelease(bool performDealloc, bool handleUnderflow)
 {
@@ -677,6 +678,7 @@ objc_object::rootRelease(bool performDealloc, bool handleUnderflow)
     if (slowpath(sideTableLocked)) sidetable_unlock();
 
     __sync_synchronize();
+    /// 发送 dealloc 消息
     if (performDealloc) {
         ((void(*)(objc_object *, SEL))objc_msgSend)(this, SEL_dealloc);
     }
