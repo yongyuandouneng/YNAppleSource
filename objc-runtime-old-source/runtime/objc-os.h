@@ -705,7 +705,7 @@ static bool is_valid_direct_key(tls_key_t k) {
                );
 }
 #endif
-
+/// 线程本地存储 TSL 取值
 static inline void *tls_get_direct(tls_key_t k) 
 { 
     assert(is_valid_direct_key(k));
@@ -716,6 +716,7 @@ static inline void *tls_get_direct(tls_key_t k)
         return pthread_getspecific(k);
     }
 }
+/// 线程本地存储 TSL 设置
 static inline void tls_set_direct(tls_key_t k, void *value) 
 { 
     assert(is_valid_direct_key(k));

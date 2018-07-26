@@ -394,8 +394,8 @@ objc_object::rootIsDeallocating()
     return sidetable_isDeallocating();
 }
 
-
-inline void 
+// 释放时，调用clearDeallocating函数。clearDeallocating函数首先根据对象地址获取所有weak指针地址的数组，然后遍历这个数组把其中的数据设为nil，最后把这个entry从weak表中删除，最后清理对象的记录。
+inline void
 objc_object::clearDeallocating()
 {
     if (slowpath(!isa.nonpointer)) {

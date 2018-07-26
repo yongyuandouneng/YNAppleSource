@@ -303,13 +303,14 @@ static void weak_entry_remove(weak_table_t *weak_table, weak_entry_t *entry)
  * @param weak_table 
  * @param referent The object. Must not be nil.
  * 
- * @return The table of weak referrers to this object. 
+ * @return The table of weak referrers to this object.
+ * 根据weak_table_t 和 对象 取得 weak_entry_t
  */
 static weak_entry_t *
 weak_entry_for_referent(weak_table_t *weak_table, objc_object *referent)
 {
     assert(referent);
-
+    /// 从weak表取得 weak_entries 数组
     weak_entry_t *weak_entries = weak_table->weak_entries;
 
     if (!weak_entries) return nil;
@@ -458,9 +459,11 @@ weak_is_registered_no_lock(weak_table_t *weak_table, id referent_id)
  * @param weak_table 
  * @param referent The object being deallocated. 
  */
+/// 清理 weak_table_t 核心方法
 void 
 weak_clear_no_lock(weak_table_t *weak_table, id referent_id) 
 {
+    /// 取得对象
     objc_object *referent = (objc_object *)referent_id;
 
     weak_entry_t *entry = weak_entry_for_referent(weak_table, referent);
@@ -473,12 +476,13 @@ weak_clear_no_lock(weak_table_t *weak_table, id referent_id)
     // zero out references
     weak_referrer_t *referrers;
     size_t count;
-    
+    /// 判断是否超过了引用计数
     if (entry->out_of_line()) {
         referrers = entry->referrers;
         count = TABLE_SIZE(entry);
     } 
     else {
+        /// 默认放 4个引用计数
         referrers = entry->inline_referrers;
         count = WEAK_INLINE_COUNT;
     }
@@ -486,6 +490,7 @@ weak_clear_no_lock(weak_table_t *weak_table, id referent_id)
     for (size_t i = 0; i < count; ++i) {
         objc_object **referrer = referrers[i];
         if (referrer) {
+            /// 清空引用计数
             if (*referrer == referent) {
                 *referrer = nil;
             }
@@ -499,7 +504,7 @@ weak_clear_no_lock(weak_table_t *weak_table, id referent_id)
             }
         }
     }
-    
+    /// 从 weak_entries 表里面移除对应的记录
     weak_entry_remove(weak_table, entry);
 }
 

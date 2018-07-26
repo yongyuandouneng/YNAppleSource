@@ -76,7 +76,7 @@ typedef DisguisedPtr<objc_object *> weak_referrer_t;
 // (disguised nil or 0x80..00) or 0b11 (any other address).
 // Therefore out_of_line_ness == 0b10 is used to mark the out-of-line state.
 #define REFERRERS_OUT_OF_LINE 2
-
+/// 它负责维护和存储指向一个对象的所有弱引用hash表
 struct weak_entry_t {
     DisguisedPtr<objc_object> referent;
     union {
@@ -115,11 +115,16 @@ struct weak_entry_t {
 /**
  * The global weak references table. Stores object ids as keys,
  * and weak_entry_t structs as their values.
+ * 全局 weak 哈希表
  */
 struct weak_table_t {
+    // 保存了所有指向指定对象的 weak 指针
     weak_entry_t *weak_entries;
+    // 存储空间
     size_t    num_entries;
+    // 参与判断引用计数辅助量
     uintptr_t mask;
+    // hash key 最大偏移值
     uintptr_t max_hash_displacement;
 };
 
