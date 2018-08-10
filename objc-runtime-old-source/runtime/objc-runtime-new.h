@@ -1099,7 +1099,7 @@ struct objc_class : objc_object {
         assert((set & clear) == 0);
         data()->changeFlags(set, clear);
     }
-
+    /// hasCustomRR()表明该类是否自定义了release和retain方法,在ARC下是不允许使用release和retain的更何况自定义。
     bool hasCustomRR() {
         return ! bits.hasDefaultRR();
     }

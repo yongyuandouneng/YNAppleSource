@@ -233,7 +233,7 @@ struct objc_class : objc_object {
     bool isARC() {
         return info & CLS_IS_ARC;
     }
-
+    
     bool hasCustomRR() { 
         return true;
     }

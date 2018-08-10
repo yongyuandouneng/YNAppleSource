@@ -23,6 +23,20 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2E389C18210AE0C1007EE28C /* benchmark.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = benchmark.h; sourceTree = "<group>"; };
+		2E389C19210AE0C1007EE28C /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		2E389C1B210AE0C1007EE28C /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		2E389C1C210AE0C1007EE28C /* data_private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = data_private.h; sourceTree = "<group>"; };
+		2E389C1E210AE0C1007EE28C /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		2E389C1F210AE0C1007EE28C /* introspection_private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = introspection_private.h; sourceTree = "<group>"; };
+		2E389C20210AE0C1007EE28C /* io_private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = io_private.h; sourceTree = "<group>"; };
+		2E389C21210AE0C1007EE28C /* layout_private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = layout_private.h; sourceTree = "<group>"; };
+		2E389C22210AE0C2007EE28C /* mach_private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mach_private.h; sourceTree = "<group>"; };
+		2E389C23210AE0C2007EE28C /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		2E389C24210AE0C2007EE28C /* private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = private.h; sourceTree = "<group>"; };
+		2E389C25210AE0C2007EE28C /* private.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = private.xcodeproj; sourceTree = "<group>"; };
+		2E389C28210AE0C2007EE28C /* queue_private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = queue_private.h; sourceTree = "<group>"; };
+		2E389C29210AE0C2007EE28C /* source_private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = source_private.h; sourceTree = "<group>"; };
 		2E3F8EA1210054F3009FDA84 /* APPLE_LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = APPLE_LICENSE; sourceTree = "<group>"; };
 		2E3F8EA2210054F3009FDA84 /* CFApplicationPreferences.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CFApplicationPreferences.c; sourceTree = "<group>"; };
 		2E3F8EA3210054F3009FDA84 /* CFArray.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CFArray.c; sourceTree = "<group>"; };
@@ -204,9 +218,55 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2E389C17210AE0C1007EE28C /* private */ = {
+			isa = PBXGroup;
+			children = (
+				2E389C18210AE0C1007EE28C /* benchmark.h */,
+				2E389C19210AE0C1007EE28C /* CMakeLists.txt */,
+				2E389C1A210AE0C1007EE28C /* darwin */,
+				2E389C1C210AE0C1007EE28C /* data_private.h */,
+				2E389C1D210AE0C1007EE28C /* generic */,
+				2E389C1F210AE0C1007EE28C /* introspection_private.h */,
+				2E389C20210AE0C1007EE28C /* io_private.h */,
+				2E389C21210AE0C1007EE28C /* layout_private.h */,
+				2E389C22210AE0C2007EE28C /* mach_private.h */,
+				2E389C23210AE0C2007EE28C /* Makefile.am */,
+				2E389C24210AE0C2007EE28C /* private.h */,
+				2E389C25210AE0C2007EE28C /* private.xcodeproj */,
+				2E389C28210AE0C2007EE28C /* queue_private.h */,
+				2E389C29210AE0C2007EE28C /* source_private.h */,
+			);
+			name = private;
+			path = "../GCD-libdispatch-913.30.4/private";
+			sourceTree = "<group>";
+		};
+		2E389C1A210AE0C1007EE28C /* darwin */ = {
+			isa = PBXGroup;
+			children = (
+				2E389C1B210AE0C1007EE28C /* module.modulemap */,
+			);
+			path = darwin;
+			sourceTree = "<group>";
+		};
+		2E389C1D210AE0C1007EE28C /* generic */ = {
+			isa = PBXGroup;
+			children = (
+				2E389C1E210AE0C1007EE28C /* module.modulemap */,
+			);
+			path = generic;
+			sourceTree = "<group>";
+		};
+		2E389C26210AE0C2007EE28C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		2E3F8E9B210054F3009FDA84 = {
 			isa = PBXGroup;
 			children = (
+				2E389C17210AE0C1007EE28C /* private */,
 				2E3F8EA1210054F3009FDA84 /* APPLE_LICENSE */,
 				2E3F8EA2210054F3009FDA84 /* CFApplicationPreferences.c */,
 				2E3F8EA3210054F3009FDA84 /* CFArray.c */,
@@ -454,6 +514,12 @@
 			mainGroup = 2E3F8E9B210054F3009FDA84;
 			productRefGroup = 2E3F8FFB21005BD9009FDA84 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 2E389C26210AE0C2007EE28C /* Products */;
+					ProjectRef = 2E389C25210AE0C2007EE28C /* private.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				2E3F8EA0210054F3009FDA84 /* RunLoopCF-1153.18 */,
