@@ -2554,9 +2554,9 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         __CFPortSet waitSet = rlm->_portSet;
         
         __CFRunLoopUnsetIgnoreWakeUps(rl);
-        /// 观察者 运行循环将要处理一个计时器时。
+        /// 这里回调观察者的活动 运行循环将要处理一个计时器时。
         if (rlm->_observerMask & kCFRunLoopBeforeTimers) __CFRunLoopDoObservers(rl, rlm, kCFRunLoopBeforeTimers);
-        /// 观察者 运行循环将要处理一个输入源时。触发 Source0 (非port) 回调。
+        /// 这里回调观察者的活动 运行循环将要处理一个输入源时。触发 Source0 (非port) 回调。
         if (rlm->_observerMask & kCFRunLoopBeforeSources) __CFRunLoopDoObservers(rl, rlm, kCFRunLoopBeforeSources);
         
         /// 设置Block回调
@@ -2566,9 +2566,9 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         if (sourceHandledThisLoop) {
             __CFRunLoopDoBlocks(rl, rlm);
         }
-        
+        /// 标志是否等待端口唤醒
         Boolean poll = sourceHandledThisLoop || (0ULL == timeout_context->termTSR);
-        
+        /// 检测端口，如果端口有事件则跳转至handle_msg（首次执行不会进入判断，因为didDispatchPortLastTime为true）
         if (MACH_PORT_NULL != dispatchPort && !didDispatchPortLastTime) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
             msg = (mach_msg_header_t *)msg_buffer;
@@ -2583,7 +2583,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         }
         
         didDispatchPortLastTime = false;
-        /// 观察者 运行循环将要休眠
+        /// 这里回调观察者的活动 运行循环将要休眠
         if (!poll && (rlm->_observerMask & kCFRunLoopBeforeWaiting)) __CFRunLoopDoObservers(rl, rlm, kCFRunLoopBeforeWaiting);
         /// 设置休眠
         __CFRunLoopSetSleeping(rl);
