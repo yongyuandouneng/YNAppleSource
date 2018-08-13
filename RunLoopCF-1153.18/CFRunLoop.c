@@ -1425,7 +1425,7 @@ static CFRunLoopRef __CFRunLoopCreate(pthread_t t) {
 }
 /// 全局的 __CFRunLoops 字典
 static CFMutableDictionaryRef __CFRunLoops = NULL;
-/// C语言的锁
+/// 访问 loopsDic 时的锁
 static CFLock_t loopsLock = CFLockInit;
 
 // should only be called by Foundation
