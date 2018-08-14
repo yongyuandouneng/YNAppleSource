@@ -1648,7 +1648,7 @@ static void __CFRunLoopAddItemsToCommonMode(const void *value, void *ctx) {
         CFRunLoopAddTimer(rl, (CFRunLoopTimerRef)item, modeName);
     }
 }
-
+/// 添加item 到CommonMode 里面
 static void __CFRunLoopAddItemToCommonModes(const void *value, void *ctx) {
     CFStringRef modeName = (CFStringRef)value;
     CFRunLoopRef rl = (CFRunLoopRef)(((CFTypeRef *)ctx)[0]);
@@ -1740,20 +1740,24 @@ static Boolean __CFRunLoopDoBlocks(CFRunLoopRef rl, CFRunLoopModeRef rlm) { // C
     if (!rl->_blocks_head) return false;
     if (!rlm || !rlm->_name) return false;
     Boolean did = false;
+    /// 头和尾指针
     struct _block_item *head = rl->_blocks_head;
     struct _block_item *tail = rl->_blocks_tail;
     rl->_blocks_head = NULL;
     rl->_blocks_tail = NULL;
+    /// commonModes 和 curMode
     CFSetRef commonModes = rl->_commonModes;
     CFStringRef curMode = rlm->_name;
     __CFRunLoopModeUnlock(rlm);
     __CFRunLoopUnlock(rl);
+    
     struct _block_item *prev = NULL;
     struct _block_item *item = head;
     while (item) {
         struct _block_item *curr = item;
         item = item->_next;
         Boolean doit = false;
+        /// 当前mode与制定mode相等或者当前mode为commonMode（此处为一个字符串）且commonMode（此处为一个集合，若有不懂，请看runLoop结构）这个集合中包含指定mode。
         if (CFStringGetTypeID() == CFGetTypeID(curr->_mode)) {
             doit = CFEqual(curr->_mode, curMode) || (CFEqual(curr->_mode, kCFRunLoopCommonModes) && CFSetContainsValue(commonModes, curMode));
         } else {
@@ -1768,6 +1772,7 @@ static Boolean __CFRunLoopDoBlocks(CFRunLoopRef rl, CFRunLoopModeRef rlm) { // C
             CFRelease(curr->_mode);
             free(curr);
             if (doit) {
+                /// 执行Block回调
                 __CFRUNLOOP_IS_CALLING_OUT_TO_A_BLOCK__(block);
                 did = true;
             }
@@ -2295,9 +2300,11 @@ static Boolean __CFRunLoopDoTimer(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLo
 
 // rl and rlm are locked on entry and exit
 static Boolean __CFRunLoopDoTimers(CFRunLoopRef rl, CFRunLoopModeRef rlm, uint64_t limitTSR) {	/* DOES CALLOUT */
+    /// 遍历runLoopMode维护的Timers数组，取其中有效的timer并加入新临时数组
     Boolean timerHandled = false;
     CFMutableArrayRef timers = NULL;
     for (CFIndex idx = 0, cnt = rlm->_timers ? CFArrayGetCount(rlm->_timers) : 0; idx < cnt; idx++) {
+        /// timer
         CFRunLoopTimerRef rlt = (CFRunLoopTimerRef)CFArrayGetValueAtIndex(rlm->_timers, idx);
         
         if (__CFIsValid(rlt) && !__CFRunLoopTimerIsFiring(rlt)) {
@@ -2307,9 +2314,10 @@ static Boolean __CFRunLoopDoTimers(CFRunLoopRef rl, CFRunLoopModeRef rlm, uint64
             }
         }
     }
-    
+    /// 遍历临时数组，每个有效Timer调用__CFRunLoopDoTimer
     for (CFIndex idx = 0, cnt = timers ? CFArrayGetCount(timers) : 0; idx < cnt; idx++) {
         CFRunLoopTimerRef rlt = (CFRunLoopTimerRef)CFArrayGetValueAtIndex(timers, idx);
+        /// do timer
         Boolean did = __CFRunLoopDoTimer(rl, rlm, rlt);
         timerHandled = timerHandled || did;
     }
@@ -2573,10 +2581,12 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
             msg = (mach_msg_header_t *)msg_buffer;
             if (__CFRunLoopServiceMachPort(dispatchPort, &msg, sizeof(msg_buffer), &livePort, 0, &voucherState, NULL)) {
+                /// 跳转去source1收到的系统消息
                 goto handle_msg;
             }
 #elif DEPLOYMENT_TARGET_WINDOWS
             if (__CFRunLoopWaitForMultipleObjects(NULL, &dispatchPort, 0, 0, &livePort, NULL)) {
+                /// 跳转去source1收到的系统消息
                 goto handle_msg;
             }
 #endif
@@ -2610,6 +2620,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             }
             msg = (mach_msg_header_t *)msg_buffer;
             /// 调用 mach_msg 等待接受 mach_port 的消息。线程将进入休眠, 直到被下面某一个事件唤醒。
+            /// 进入循环开始不断的读取端口信息，如果端口有唤醒信息则唤醒当前runLoop.
             /// 一个基于 port 的Source 的事件。
             /// 一个 Timer 到时间了
             /// RunLoop 自身的超时时间到了
@@ -2670,8 +2681,9 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         __CFRunLoopUnsetSleeping(rl);
         /// 观察者 RunLoop从睡眠中被唤醒
         if (!poll && (rlm->_observerMask & kCFRunLoopAfterWaiting)) __CFRunLoopDoObservers(rl, rlm, kCFRunLoopAfterWaiting);
-    /// 收到消息，处理消息。
+    /// 收到消息，处理消息，执行端口的事件
     handle_msg:;
+        // 设置此时runLoop忽略端口唤醒（保证线程安全）
         __CFRunLoopSetIgnoreWakeUps(rl);
         
 #if DEPLOYMENT_TARGET_WINDOWS
@@ -2692,6 +2704,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             
             __CFRunLoopLock(rl);
             __CFRunLoopModeLock(rlm);
+            /// 设置当前RunLoop事件源处理为true
             sourceHandledThisLoop = true;
             
             // To prevent starvation of sources other than the message queue, we check again to see if any other sources need to be serviced
@@ -2766,7 +2779,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             
             // If we received a voucher from this mach_msg, then put a copy of the new voucher into TSD. CFMachPortBoost will look in the TSD for the voucher. By using the value in the TSD we tie the CFMachPortBoost to this received mach_msg explicitly without a chance for anything in between the two pieces of code to set the voucher again.
             voucher_t previousVoucher = _CFSetTSD(__CFTSDKeyMachMessageHasVoucher, (void *)voucherCopy, os_release);
-            
+            /// 这里调用 __CFRunLoopModeFindSourceForMachPort 找到 source, key 为 mach_port 指为 source
             // Despite the name, this works for windows handles as well
             CFRunLoopSourceRef rls = __CFRunLoopModeFindSourceForMachPort(rl, rlm, livePort);
             if (rls) {
@@ -3050,36 +3063,50 @@ void CFRunLoopAddSource(CFRunLoopRef rl, CFRunLoopSourceRef rls, CFStringRef mod
     Boolean doVer0Callout = false;
     __CFRunLoopLock(rl);
     if (modeName == kCFRunLoopCommonModes) {
+        /// 如果runloop的_commonModes存在，则copy一个新的复制给set
         CFSetRef set = rl->_commonModes ? CFSetCreateCopy(kCFAllocatorSystemDefault, rl->_commonModes) : NULL;
         if (NULL == rl->_commonModeItems) {
+            // 如果runl _commonModeItems为空，就初始化一个set
             rl->_commonModeItems = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeSetCallBacks);
         }
+        /// 把传入的CFRunLoopSourceRef加入_commonModeItems
         CFSetAddValue(rl->_commonModeItems, rls);
+        /// 如果刚才set copy到的数组里有数据
         if (NULL != set) {
             CFTypeRef context[2] = {rl, rls};
             /* add new item to all common-modes */
+            /// 这句的作用是集合中的所有对象均调用__CFRunLoopAddItemToCommonModes这个方法。
             CFSetApplyFunction(set, (__CFRunLoopAddItemToCommonModes), (void *)context);
             CFRelease(set);
         }
+        /// 以上分支的逻辑就是，如果你往kCFRunLoopCommonModes里面添加一个source，那么所有_commonModes里的mode都会添加这个source
     } else {
+        /// 根据modeName去寻找Mode找不到就创建
         CFRunLoopModeRef rlm = __CFRunLoopFindMode(rl, modeName, true);
         if (NULL != rlm && NULL == rlm->_sources0) {
+            /// 创建
             rlm->_sources0 = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeSetCallBacks);
             rlm->_sources1 = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeSetCallBacks);
             rlm->_portToV1SourceMap = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, NULL, NULL);
         }
+        /// 根据source context.version0.version 判断是source0还是source1 把事件源放进去
         if (NULL != rlm && !CFSetContainsValue(rlm->_sources0, rls) && !CFSetContainsValue(rlm->_sources1, rls)) {
-            if (0 == rls->_context.version0.version) {
+            if (0 == rls->_context.version0.version) { /// source 0
+                /// source 0 存入 set
                 CFSetAddValue(rlm->_sources0, rls);
-            } else if (1 == rls->_context.version0.version) {
+            } else if (1 == rls->_context.version0.version) { /// source 1
+                /// source 1 存入 set
                 CFSetAddValue(rlm->_sources1, rls);
+                /// 从 _context.version1.info 取得 port
                 __CFPort src_port = rls->_context.version1.getPort(rls->_context.version1.info);
                 if (CFPORT_NULL != src_port) {
+                    /// 以 mach_port 为 key 值为 source1 存入到 Mode 的 _portToV1SourceMap Map中
                     CFDictionarySetValue(rlm->_portToV1SourceMap, (const void *)(uintptr_t)src_port, rls);
                     __CFPortSetInsert(src_port, rlm->_portSet);
                 }
             }
             __CFRunLoopSourceLock(rls);
+            /// 这里把RunLoop也放到 source结构体里面
             if (NULL == rls->_runLoops) {
                 rls->_runLoops = CFBagCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeBagCallBacks); // sources retain run loops!
             }
@@ -3338,15 +3365,20 @@ void CFRunLoopAddTimer(CFRunLoopRef rl, CFRunLoopTimerRef rlt, CFStringRef modeN
     if (__CFRunLoopIsDeallocating(rl)) return;
     if (!__CFIsValid(rlt) || (NULL != rlt->_runLoop && rlt->_runLoop != rl)) return;
     __CFRunLoopLock(rl);
+    /// 加入RunLoop的Mode中的timer等于 commonModes
     if (modeName == kCFRunLoopCommonModes) {
+        /// 取到commonModes所代表的Mode的集合
         CFSetRef set = rl->_commonModes ? CFSetCreateCopy(kCFAllocatorSystemDefault, rl->_commonModes) : NULL;
         if (NULL == rl->_commonModeItems) {
+            /// 创建
             rl->_commonModeItems = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeSetCallBacks);
         }
+        /// 把timer 加入到 commonModeItems
         CFSetAddValue(rl->_commonModeItems, rlt);
         if (NULL != set) {
             CFTypeRef context[2] = {rl, rlt};
             /* add new item to all common-modes */
+            /// 把新的item 加入到 commonModes 去
             CFSetApplyFunction(set, (__CFRunLoopAddItemToCommonModes), (void *)context);
             CFRelease(set);
         }
