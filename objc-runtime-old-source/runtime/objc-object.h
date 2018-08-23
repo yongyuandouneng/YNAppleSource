@@ -1159,6 +1159,7 @@ getReturnDisposition()
 static ALWAYS_INLINE void 
 setReturnDisposition(ReturnDisposition disposition)
 {
+    /// tls 设置值
     tls_set_direct(RETURN_DISPOSITION_KEY, (void*)(uintptr_t)disposition);
 }
 

@@ -907,7 +907,7 @@ BOOL class_isMetaClass(Class cls)
     return cls->isMetaClass();
 }
 
-
+/// 获取实例大小
 size_t class_getInstanceSize(Class cls)
 {
     if (!cls) return 0;
@@ -918,6 +918,7 @@ size_t class_getInstanceSize(Class cls)
 /***********************************************************************
 * method_getNumberOfArguments.
 **********************************************************************/
+/// 获取方法上的参数
 unsigned int method_getNumberOfArguments(Method m)
 {
     if (!m) return 0;

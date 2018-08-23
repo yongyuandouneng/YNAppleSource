@@ -9,10 +9,12 @@
 
 @interface People : NSObject
 
+@property (nonatomic, assign) int a;
+
 @property (nonatomic, copy) NSString *name;
-
+//
 @property (nonatomic, copy) NSString *test;
-
-@property (nonatomic) People *ppp;
+//
+//@property (nonatomic) People *ppp;
 
 @end

@@ -2006,18 +2006,20 @@ objc_retainAutoreleaseAndReturn(id obj)
 {
     return objc_retainAutorelease(obj);
 }
-
-
+/// 在返回值身上调用objc_autoreleaseReturnValue方法时，runtime将这个返回值object储存在TLS中，然后直接返回这个object（不调用autorelease）；同时，在外部接收这个返回值的objc_retainAutoreleasedReturnValue里，发现TLS中正好存了这个对象，那么直接返回这个object（不调用retain）。
+/// 于是乎，调用方和被调方利用TLS做中转，很有默契的免去了对返回值的内存管理。
+/// 函数返回值时将调用 objc_autoreleaseReturnValue ，在线程里开辟小内存(TSL)存放obj，调用_pthread_setspecific_direct
 // Prepare a value at +1 for return through a +0 autoreleasing convention.
 id 
 objc_autoreleaseReturnValue(id obj)
 {
     if (prepareOptimizedReturn(ReturnAtPlus1)) return obj;
-
+    
     return objc_autorelease(obj);
 }
 
 // Prepare a value at +0 for return through a +0 autoreleasing convention.
+/// 用来接收值 TSL
 id 
 objc_retainAutoreleaseReturnValue(id obj)
 {

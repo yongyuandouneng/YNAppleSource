@@ -530,7 +530,7 @@ struct locstamped_category_list_t {
 
 #endif
 
-
+/// 编译期决定 readOnly
 struct class_ro_t {
     uint32_t flags;
     uint32_t instanceStart;
@@ -803,17 +803,21 @@ class protocol_array_t :
     }
 };
 
-
+/*
+在编译期，类的相关方法，属性，协议会被添加到class_ro_t这个只读的结构体中。
+在运行期，类第一次被调用的时候，class_rw_t会被初始化，category中的内容也是在这个时候被添加进来的。
+class_rw_t不仅仅用来存放运行时添加的信息，编译期确定下来的信息也会被拷贝进去
+*/
 struct class_rw_t {
     // Be warned that Symbolication knows the layout of this structure.
     uint32_t flags;
     uint32_t version;
-
+    
     const class_ro_t *ro;
 
-    method_array_t methods;
-    property_array_t properties;
-    protocol_array_t protocols;
+    method_array_t methods; /// 方法列表
+    property_array_t properties; /// 属性列表
+    protocol_array_t protocols; /// 协议列表
 
     Class firstSubclass;
     Class nextSiblingClass;
@@ -1074,8 +1078,14 @@ struct objc_class : objc_object {
     /// 方法缓存
     cache_t cache;             // formerly cache pointer and vtable
     /// uintptr_t nonpointer存储类方法,属性,遵从协议等数据.
+    /// 获取具体类的信息
     class_data_bits_t bits;    // class_rw_t * plus custom rr/alloc flags
-
+    /// class_rw_t 这里面包括了 methods, properties, protocols
+    /*
+     method_array_t methods;
+     property_array_t properties;
+     protocol_array_t protocols;
+     */
     class_rw_t *data() { 
         return bits.data();
     }
@@ -1167,6 +1177,7 @@ struct objc_class : objc_object {
     }
 
     // Return YES if the class's ivars are managed by ARC.
+    /// 是否是 ARC
     bool isARC() {
         return data()->ro->flags & RO_IS_ARC;
     }
@@ -1175,12 +1186,13 @@ struct objc_class : objc_object {
 #if SUPPORT_NONPOINTER_ISA
     // Tracked in non-pointer isas; not tracked otherwise
 #else
+    /// 关键对象
     bool instancesHaveAssociatedObjects() {
         // this may be an unrealized future class in the CF-bridged case
         assert(isFuture()  ||  isRealized());
         return data()->flags & RW_INSTANCES_HAVE_ASSOCIATED_OBJECTS;
     }
-
+    /// 关键对象
     void setInstancesHaveAssociatedObjects() {
         // this may be an unrealized future class in the CF-bridged case
         assert(isFuture()  ||  isRealized());
@@ -1208,14 +1220,14 @@ struct objc_class : objc_object {
     bool isInitialized() {
         return getMeta()->data()->flags & RW_INITIALIZED;
     }
-
+   
     void setInitialized();
-
+    /// 是否已经加载
     bool isLoadable() {
         assert(isRealized());
         return true;  // any class registered for +load is definitely loadable
     }
-
+    /// 取得 + load 类方法的IMP指针
     IMP getLoadMethod();
 
     // Locking: To prevent concurrent realization, hold runtimeLock.
@@ -1229,7 +1241,7 @@ struct objc_class : objc_object {
     bool isFuture() { 
         return data()->flags & RW_FUTURE;
     }
-
+    /// 是否是元类
     bool isMetaClass() {
         assert(this);
         assert(isRealized());
@@ -1237,14 +1249,16 @@ struct objc_class : objc_object {
     }
 
     // NOT identical to this->ISA when this is a metaclass
+    /// 获取元类
     Class getMeta() {
         if (isMetaClass()) return (Class)this;
         else return this->ISA();
     }
-
+    /// 是否是根类
     bool isRootClass() {
         return superclass == nil;
     }
+    /// 是否是根类的元类
     bool isRootMetaclass() {
         return ISA() == (Class)this;
     }
@@ -1282,10 +1296,12 @@ struct objc_class : objc_object {
     }
 
     // Class's ivar size rounded up to a pointer-size boundary.
+    /// 对齐后分配了 8字节 给实例对象 64bit = 8byte 32bit = 4 byte
     uint32_t alignedInstanceSize() {
         return word_align(unalignedInstanceSize());
     }
-
+    /// alignedInstanceSize() 内存对齐后是8个字节，
+    /// 由于extraBytes等于0，因此 size < 16成立，所以最终的 size 返回的是16！
     size_t instanceSize(size_t extraBytes) {
         size_t size = alignedInstanceSize() + extraBytes;
         // CF requires all objects be at least 16 bytes.
