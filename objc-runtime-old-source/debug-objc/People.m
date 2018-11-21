@@ -9,17 +9,4 @@
 
 @implementation People
 
-- (void)dealloc {
-    NSLog(@"---People 调用析构函数");
-}
-
-- (instancetype)init
-{
-    self = [super init];
-    if (self) {
-        
-    }
-    return self;
-}
-
 @end

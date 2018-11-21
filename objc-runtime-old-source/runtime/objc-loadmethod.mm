@@ -192,6 +192,7 @@ static void call_class_loads(void)
     
     // Detach current loadable list.
     struct loadable_class *classes = loadable_classes;
+    /// 全局变量 loadable_classes_userd
     int used = loadable_classes_used;
     loadable_classes = nil;
     loadable_classes_allocated = 0;

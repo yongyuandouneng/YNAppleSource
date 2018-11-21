@@ -636,7 +636,7 @@ attachCategories(Class cls, category_list *cats, bool flush_caches)
         malloc(cats->count * sizeof(*protolists));
 
     // Count backwards through cats to get newest categories first
-    // 生成了所有method的list之后，调用attachMethodLists将所有方法前序添加进类的方法的数组中，也就是说，如果原来类的方法是a,b,c，类别的方法是1,2,3，那么插入之后的方法将会是1,2,3,a,b,c，也就是说，原来类的方法被category的方法覆盖了，但被覆盖的方法确实还在那里。
+    // 生成了所有method的list之后，调用attachMethodLists将所有方法前序添加进类的方法的数组中，也就是说，如果原来类的方法是a,b,c，类别的方法是1,2,3，那么插入之后的方法将会是a,b,c,1,2,3,，也就是说，原来类的方法被category的方法覆盖了，但被覆盖的方法确实还在那里。
     int mcount = 0;
     int propcount = 0;
     int protocount = 0;
@@ -664,7 +664,7 @@ attachCategories(Class cls, category_list *cats, bool flush_caches)
     }
 
     auto rw = cls->data();
-
+    /// 合并
     prepareMethodLists(cls, mlists, mcount, NO, fromBundle);
     rw->methods.attachLists(mlists, mcount);
     free(mlists);
@@ -760,6 +760,8 @@ static void methodizeClass(Class cls)
 **********************************************************************/
 static void remethodizeClass(Class cls)
 {
+    /// Category 中的实例方法和属性被整合到主类中；而类方法则被整合到元类中.
+    /// 通过调用 static void remethodizeClass(Class cls) 函数来重新整理类的数据的,
     category_list *cats;
     bool isMeta;
 
@@ -2309,7 +2311,7 @@ readProtocol(protocol_t *newproto, Class protocol_class,
 }
 
 /***********************************************************************
-* _read_images
+* _read_images /// 解析 二进制文件
 * Perform initial processing of the headers in the linked 
 * list beginning with headerList. 
 *
@@ -2576,7 +2578,7 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
         for (i = 0; i < count; i++) {
             category_t *cat = catlist[i];
             Class cls = remapClass(cat->cls);
-
+            
             if (!cls) {
                 // Category's target class is missing (probably weak-linked).
                 // Disavow any knowledge of this category.
@@ -2733,6 +2735,7 @@ bool hasLoadMethods(const headerType *mhdr)
     if (_getObjc2NonlazyCategoryList(mhdr, &count)  &&  count > 0) return true;
     return false;
 }
+
 /// 为加载Load方法做准备
 void prepare_load_methods(const headerType *mhdr)
 {
@@ -4649,7 +4652,7 @@ IMP lookUpImpOrForward(Class cls, SEL sel, id inst,
         runtimeLock.unlockWrite();
         runtimeLock.read();
     }
-
+    /// 调用 initalize 类方法
     if (initialize  &&  !cls->isInitialized()) {
         runtimeLock.unlockRead();
         _class_initialize (_class_getNonMetaClass(cls, inst));

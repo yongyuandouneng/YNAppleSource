@@ -813,7 +813,7 @@ class mutex_tt : nocopy_t {
 
     void lock() {
         lockdebug_mutex_lock(this);
-
+        /// os_unfair_lock 自旋锁 代替 spinlock_t
         os_unfair_lock_lock_with_options_inline
             (&mLock, OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION);
     }

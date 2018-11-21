@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		00396A861C81654B00667CB8 /* libobjc.A.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC0630554660B00DB518D /* libobjc.A.dylib */; };
-		2E3F8E0F20FC50DE009FDA84 /* NSObject+Extend.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E3F8E0E20FC50DE009FDA84 /* NSObject+Extend.m */; };
 		2E3F8E1220FC9B69009FDA84 /* People.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E3F8E1120FC9B69009FDA84 /* People.m */; };
 		304E5F781F3329E7008E8A5F /* objc-msg-simulator-x86_64.s in Sources */ = {isa = PBXBuildFile; fileRef = 304E5F771F3329E7008E8A5F /* objc-msg-simulator-x86_64.s */; };
 		305B27561C7D9E96005AC125 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 305B27551C7D9E96005AC125 /* main.m */; };
@@ -185,8 +184,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		2E3F8E0D20FC50DE009FDA84 /* NSObject+Extend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSObject+Extend.h"; sourceTree = "<group>"; };
-		2E3F8E0E20FC50DE009FDA84 /* NSObject+Extend.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSObject+Extend.m"; sourceTree = "<group>"; };
 		2E3F8E1020FC9B69009FDA84 /* People.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = People.h; sourceTree = "<group>"; };
 		2E3F8E1120FC9B69009FDA84 /* People.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = People.m; sourceTree = "<group>"; };
 		2E3F8E1420FC9C16009FDA84 /* 消息转发流程图.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "消息转发流程图.png"; sourceTree = "<group>"; };
@@ -467,8 +464,6 @@
 			children = (
 				2E3F8E1320FC9BC7009FDA84 /* images */,
 				305B27551C7D9E96005AC125 /* main.m */,
-				2E3F8E0D20FC50DE009FDA84 /* NSObject+Extend.h */,
-				2E3F8E0E20FC50DE009FDA84 /* NSObject+Extend.m */,
 				2E3F8E1020FC9B69009FDA84 /* People.h */,
 				2E3F8E1120FC9B69009FDA84 /* People.m */,
 			);
@@ -907,7 +902,6 @@
 			files = (
 				2E3F8E1220FC9B69009FDA84 /* People.m in Sources */,
 				305B27561C7D9E96005AC125 /* main.m in Sources */,
-				2E3F8E0F20FC50DE009FDA84 /* NSObject+Extend.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

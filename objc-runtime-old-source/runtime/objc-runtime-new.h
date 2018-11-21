@@ -697,7 +697,7 @@ class list_array_tt {
             return &list;
         }
     }
-
+    
     void attachLists(List* const * addedLists, uint32_t addedCount) {
         if (addedCount == 0) return;
 
@@ -981,7 +981,7 @@ public:
         data()->setFlags(RW_HAS_CXX_DTOR);
     }
 #endif
-
+/// 是否需要RawIsa(?)的标识;
 #if FAST_REQUIRES_RAW_ISA
     bool instancesRequireRawIsa() {
         return getBit(FAST_REQUIRES_RAW_ISA);
@@ -1004,7 +1004,7 @@ public:
         // nothing
     }
 #endif
-
+/// 实例大小;
 #if FAST_ALLOC
     size_t fastInstanceSize() 
     {
@@ -1085,6 +1085,7 @@ struct objc_class : objc_object {
      method_array_t methods;
      property_array_t properties;
      protocol_array_t protocols;
+     存储该类方法属性协议等相关内容的指针,该结构体包含一个const class_ro_t *ro只读属性ro,ro中存储类在编译阶段就存在的方法属性协议等,因此当在运
      */
     class_rw_t *data() { 
         return bits.data();
@@ -1113,13 +1114,14 @@ struct objc_class : objc_object {
     bool hasCustomRR() {
         return ! bits.hasDefaultRR();
     }
+    /// 当前类或者父类是否含有默认的 retain/release/autorelease/retainCount/_tryRetain/_isDeallocating/retainWeakReference/allowsWeakReference方法;
     void setHasDefaultRR() {
         assert(isInitializing());
         bits.setHasDefaultRR();
     }
     void setHasCustomRR(bool inherited = false);
     void printCustomRR(bool inherited);
-
+    /// 当前类或者父类是否含有allocWithZone方法;
     bool hasCustomAWZ() {
         return ! bits.hasDefaultAWZ();
     }
@@ -1145,7 +1147,7 @@ struct objc_class : objc_object {
         return bits.canAllocFast();
     }
 
-
+    /// 是否有构造方法,alloc时使用;
     bool hasCxxCtor() {
         // addSubclass() propagates this flag from the superclass.
         assert(isRealized());
@@ -1155,6 +1157,7 @@ struct objc_class : objc_object {
         bits.setHasCxxCtor();
     }
 
+    /// 是否有析构方法,dealloc时使用;
     bool hasCxxDtor() {
         // addSubclass() propagates this flag from the superclass.
         assert(isRealized());

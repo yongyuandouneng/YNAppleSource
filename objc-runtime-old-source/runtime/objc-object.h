@@ -342,6 +342,7 @@ objc_object::setHasAssociatedObjects()
         ClearExclusive(&isa.bits);
         return;
     }
+    /// 设置对象有has_assoc
     newisa.has_assoc = true;
     if (!StoreExclusive(&isa.bits, oldisa.bits, newisa.bits)) goto retry;
 }

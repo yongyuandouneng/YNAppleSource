@@ -1147,6 +1147,7 @@ public:
         id *dest;
         if (DebugPoolAllocation) {
             // Each autorelease pool starts on a new pool page.
+            // POOL_BOUNDARY = nil 插入哨兵对象
             dest = autoreleaseNewPage(POOL_BOUNDARY);
         } else {
             dest = autoreleaseFast(POOL_BOUNDARY);

@@ -480,6 +480,7 @@ void performForkChildInitialize(Class cls, Class supercls)
 /***********************************************************************
 * class_initialize.  Send the '+initialize' message on demand to any
 * uninitialized class. Force initialization of superclasses first.
+ 调用类方法~
 **********************************************************************/
 void _class_initialize(Class cls)
 {
@@ -490,6 +491,7 @@ void _class_initialize(Class cls)
 
     // Make sure super is done initializing BEFORE beginning to initialize cls.
     // See note about deadlock above.
+    /// 先初始化父类
     supercls = cls->superclass;
     if (supercls  &&  !supercls->isInitialized()) {
         _class_initialize(supercls);
@@ -534,6 +536,7 @@ void _class_initialize(Class cls)
         @try
 #endif
         {
+            /// initialize 函数指针调用
             callInitialize(cls);
 
             if (PrintInitializing) {

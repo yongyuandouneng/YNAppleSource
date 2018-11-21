@@ -465,7 +465,7 @@ weak_clear_no_lock(weak_table_t *weak_table, id referent_id)
 {
     /// 取得对象
     objc_object *referent = (objc_object *)referent_id;
-
+    /// 取得weak_entries数组中的weak_entry_t  Weak指针地址的数组
     weak_entry_t *entry = weak_entry_for_referent(weak_table, referent);
     if (entry == nil) {
         /// XXX shouldn't happen, but does with mismatched CF/objc
@@ -486,7 +486,7 @@ weak_clear_no_lock(weak_table_t *weak_table, id referent_id)
         referrers = entry->inline_referrers;
         count = WEAK_INLINE_COUNT;
     }
-    
+    /// 遍历这个数组把其中的数据设为nil
     for (size_t i = 0; i < count; ++i) {
         objc_object **referrer = referrers[i];
         if (referrer) {
