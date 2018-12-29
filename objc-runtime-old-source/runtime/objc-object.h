@@ -197,10 +197,12 @@ objc_object::initInstanceIsa(Class cls, bool hasCxxDtor)
 {
     assert(!cls->instancesRequireRawIsa());
     assert(hasCxxDtor == cls->hasCxxDtor());
-
+    /// dtor是用来判断当前class或者superclass是否有.cxx_destruct函数的实现
+    // ctor是判断当前class或者superclass 是否有.cxx_construct构造方法的实现。
     initIsa(cls, true, hasCxxDtor);
 }
 
+/// 初始化isa 指针
 inline void 
 objc_object::initIsa(Class cls, bool nonpointer, bool hasCxxDtor) 
 { 
@@ -211,7 +213,7 @@ objc_object::initIsa(Class cls, bool nonpointer, bool hasCxxDtor)
     } else {
         assert(!DisableNonpointerIsa);
         assert(!cls->instancesRequireRawIsa());
-
+        /// 新建isa_t
         isa_t newisa(0);
 
 #if SUPPORT_INDEXED_ISA

@@ -1293,6 +1293,8 @@ struct objc_class : objc_object {
     }
 
     // May be unaligned depending on class's ivars.
+    /// 实例大小 instanceSize会存储在类的 isa_t结构体中，然后经过对齐最后返回
+    /// core Foundation 需要所有的对象的大小都必须大于或等于 16 字节。
     uint32_t unalignedInstanceSize() {
         assert(isRealized());
         return data()->ro->instanceSize;

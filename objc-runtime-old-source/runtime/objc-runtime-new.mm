@@ -6170,7 +6170,7 @@ objc_constructInstance(Class cls, void *bytes)
 * fixme
 * Locking: none
 **********************************************************************/
-
+/// 创建实例对象的核心方法
 static __attribute__((always_inline)) 
 id
 _class_createInstanceFromZone(Class cls, size_t extraBytes, void *zone, 
@@ -6181,11 +6181,14 @@ _class_createInstanceFromZone(Class cls, size_t extraBytes, void *zone,
 
     assert(cls->isRealized());
 
+    /// dtor是用来判断当前class或者superclass是否有.cxx_destruct函数的实现
+    // ctor是判断当前class或者superclass 是否有.cxx_construct构造方法的实现。
+    
     // Read class's info bits all at once for performance
     bool hasCxxCtor = cls->hasCxxCtor();
     bool hasCxxDtor = cls->hasCxxDtor();
     bool fast = cls->canAllocNonpointer();
-    /// 这里分配大小
+    /// 这里分配大小 默认对象分配 8b 但是 size 有个判断需要分配 16的倍数 所以 默认给对象分配的是 16b
     size_t size = cls->instanceSize(extraBytes);
     if (outAllocatedSize) *outAllocatedSize = size;
 
@@ -6199,10 +6202,11 @@ _class_createInstanceFromZone(Class cls, size_t extraBytes, void *zone,
         if (zone) {
             obj = (id)malloc_zone_calloc ((malloc_zone_t *)zone, 1, size);
         } else {
+            /// 这里初始化对象
             obj = (id)calloc(1, size);
         }
         if (!obj) return nil;
-
+        /// 这里初始化创建 ISA
         // Use raw pointer isa on the assumption that they might be 
         // doing something weird with the zone or RR.
         obj->initIsa(cls);
@@ -6241,7 +6245,7 @@ class_createInstances(Class cls, size_t extraBytes,
 
 /***********************************************************************
 * object_copyFromZone
-* fixme
+* fixme  extraBytes == 0
 * Locking: none
 **********************************************************************/
 static id 

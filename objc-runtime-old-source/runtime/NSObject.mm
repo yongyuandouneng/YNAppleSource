@@ -1832,6 +1832,7 @@ _objc_rootRelease(id obj)
 }
 
 
+/// alloc 会调用的方法
 id
 _objc_rootAllocWithZone(Class cls, malloc_zone_t *zone)
 {
@@ -1841,7 +1842,7 @@ _objc_rootAllocWithZone(Class cls, malloc_zone_t *zone)
     // allocWithZone under __OBJC2__ ignores the zone parameter
     (void)zone;
     obj = class_createInstance(cls, 0);
-#else
+#else /// 旧版会传入 Zone
     if (!zone) {
         obj = class_createInstance(cls, 0);
     }
@@ -1857,33 +1858,41 @@ _objc_rootAllocWithZone(Class cls, malloc_zone_t *zone)
 
 // Call [cls alloc] or [cls allocWithZone:nil], with appropriate 
 // shortcutting optimizations.
+// alloc 方法 allocWithZone 设置为 true
+// new 方法 allocWithZone 为 false
+// 在旧版的时候 会使用 Zone控件 新版的时候 忽略了这个参数 _objc_rootAllocWithZone
 static ALWAYS_INLINE id
 callAlloc(Class cls, bool checkNil, bool allocWithZone=false)
 {
     if (slowpath(checkNil && !cls)) return nil;
 
 #if __OBJC2__
+    /// 当前类或者父类是否含有allocWithZone方法;
     if (fastpath(!cls->ISA()->hasCustomAWZ())) {
         // No alloc/allocWithZone implementation. Go straight to the allocator.
         // fixme store hasCustomAWZ in the non-meta class and 
         // add it to canAllocFast's summary
+        // 是否可以快速创建
         if (fastpath(cls->canAllocFast())) {
             // No ctors, raw isa, etc. Go straight to the metal.
             bool dtor = cls->hasCxxDtor();
             id obj = (id)calloc(1, cls->bits.fastInstanceSize());
+            // 创建失败 回调 callBadAllocHandler
             if (slowpath(!obj)) return callBadAllocHandler(cls);
+            /// 初始化 isa
             obj->initInstanceIsa(cls, dtor);
             return obj;
         }
         else {
             // Has ctor or raw isa or something. Use the slower path.
             id obj = class_createInstance(cls, 0);
+            // 创建失败 回调 callBadAllocHandler
             if (slowpath(!obj)) return callBadAllocHandler(cls);
             return obj;
         }
     }
 #endif
-
+    
     // No shortcuts available.
     if (allocWithZone) return [cls allocWithZone:nil];
     return [cls alloc];
@@ -1892,12 +1901,13 @@ callAlloc(Class cls, bool checkNil, bool allocWithZone=false)
 
 // Base class implementation of +alloc. cls is not nil.
 // Calls [cls allocWithZone:nil].
+// alloc 方法 allocWithZone 设置为 true
 id
 _objc_rootAlloc(Class cls)
 {
     return callAlloc(cls, false/*checkNil*/, true/*allocWithZone*/);
 }
-
+/// 这是 new 调用的方法 allocWithZone为 false
 // Calls [cls alloc].
 id
 objc_alloc(Class cls)

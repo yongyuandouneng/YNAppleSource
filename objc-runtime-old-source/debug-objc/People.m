@@ -9,4 +9,13 @@
 
 @implementation People
 
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        [self class];
+    }
+    return self;
+}
+
 @end
