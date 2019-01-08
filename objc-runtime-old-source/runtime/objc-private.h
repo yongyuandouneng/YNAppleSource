@@ -110,7 +110,7 @@ union isa_t
         /// 引用计数器是否过大无法存储在isa中
         /// 如果为1，那么引用计数会存储在一个叫SideTable的类的属性中
         uintptr_t has_sidetable_rc  : 1;
-        /// 超出sidetable的引用计数存放在这里
+        /// sidetable的引用计数存放在这里 超出则放置sideTable 的 RefcountMap 里面
         uintptr_t extra_rc          : 19;
 #       define RC_ONE   (1ULL<<45)
 #       define RC_HALF  (1ULL<<18)

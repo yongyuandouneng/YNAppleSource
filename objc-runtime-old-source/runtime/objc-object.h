@@ -146,7 +146,7 @@ objc_object::isExtTaggedPointer()
 
 
 #if SUPPORT_NONPOINTER_ISA
-
+/// 返回isa
 inline Class 
 objc_object::ISA() 
 {
@@ -162,7 +162,7 @@ objc_object::ISA()
 #endif
 }
 
-
+/// 是否支持 nonpointer
 inline bool 
 objc_object::hasNonpointerIsa()
 {
@@ -191,7 +191,7 @@ objc_object::initProtocolIsa(Class cls)
 {
     return initClassIsa(cls);
 }
-
+/// 对象初始化isa入口
 inline void 
 objc_object::initInstanceIsa(Class cls, bool hasCxxDtor)
 {
@@ -209,15 +209,15 @@ objc_object::initIsa(Class cls, bool nonpointer, bool hasCxxDtor)
     assert(!isTaggedPointer()); 
     
     if (!nonpointer) {
-        isa.cls = cls;
+        isa.cls = cls;  
     } else {
         assert(!DisableNonpointerIsa);
         assert(!cls->instancesRequireRawIsa());
         /// 新建isa_t
         isa_t newisa(0);
-
 #if SUPPORT_INDEXED_ISA
         assert(cls->classArrayIndex() > 0);
+        // 进入此分支
         newisa.bits = ISA_INDEX_MAGIC_VALUE;
         // isa.magic is part of ISA_MAGIC_VALUE
         // isa.nonpointer is part of ISA_MAGIC_VALUE
@@ -419,7 +419,7 @@ objc_object::rootDealloc()
 {
     /// 这里面只是进行一些判断 和释放
     if (isTaggedPointer()) return;  // fixme necessary?
-
+    /// 判断5个条件，如果没有 则直接释放
     if (fastpath(isa.nonpointer  &&  
                  !isa.weakly_referenced  &&  
                  !isa.has_assoc  &&  
@@ -469,7 +469,7 @@ objc_object::rootTryRetain()
 {
     return rootRetain(true, false) ? true : false;
 }
-
+/// retain 方法
 ALWAYS_INLINE id 
 objc_object::rootRetain(bool tryRetain, bool handleOverflow)
 {
@@ -498,8 +498,8 @@ objc_object::rootRetain(bool tryRetain, bool handleOverflow)
             return nil;
         }
         uintptr_t carry;
+        /// 这里引用计数 extra_rc + 1
         newisa.bits = addc(newisa.bits, RC_ONE, 0, &carry);  // extra_rc++
-
         if (slowpath(carry)) {
             // newisa.extra_rc++ overflowed
             if (!handleOverflow) {
@@ -514,8 +514,9 @@ objc_object::rootRetain(bool tryRetain, bool handleOverflow)
             newisa.extra_rc = RC_HALF;
             newisa.has_sidetable_rc = true;
         }
+        /// 更新isa_t
     } while (slowpath(!StoreExclusive(&isa.bits, oldisa.bits, newisa.bits)));
-
+    /// 当 引用计数 超过 isa.extra_rc 8位之后 就开启引用技术表来存储
     if (slowpath(transcribeToSideTable)) {
         // Copy the other half of the retain counts to the side table.
         sidetable_addExtraRC_nolock(RC_HALF);
@@ -562,7 +563,7 @@ objc_object::rootReleaseShouldDealloc()
 {
     return rootRelease(false, false);
 }
-/// rootRelease 释放，同时进而调用dealloc方法
+/// rootRelease 释放，进而调用dealloc方法
 ALWAYS_INLINE bool 
 objc_object::rootRelease(bool performDealloc, bool handleUnderflow)
 {
@@ -720,6 +721,7 @@ objc_object::rootRetainCount()
     isa_t bits = LoadExclusive(&isa.bits);
     ClearExclusive(&isa.bits);
     if (bits.nonpointer) {
+        /// 先从 bits.extra_rc 里面取得 + 1  再判断是否yong le sidetable_rc 来
         uintptr_t rc = 1 + bits.extra_rc;
         if (bits.has_sidetable_rc) {
             rc += sidetable_getExtraRC_nolock();
@@ -729,6 +731,7 @@ objc_object::rootRetainCount()
     }
 
     sidetable_unlock();
+    /// 非 nonopointer 和 非 taggedPointer 直接使用 sidetable的情况
     return sidetable_retainCount();
 }
 

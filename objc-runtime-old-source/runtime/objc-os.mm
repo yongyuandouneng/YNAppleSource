@@ -217,7 +217,7 @@ bool bad_magic(const headerType *mhdr)
             mhdr->magic != MH_CIGAM  &&  mhdr->magic != MH_CIGAM_64);
 }
 
-
+/// header_info 信息
 static header_info * addHeader(const headerType *mhdr, const char *path, int &totalClasses, int &unoptimizedTotalClasses)
 {
     header_info *hi;
@@ -467,7 +467,7 @@ map_images_nolock(unsigned mhCount, const char * const mhPaths[],
         uint32_t i = mhCount;
         while (i--) {
             const headerType *mhdr = (const headerType *)mhdrs[i];
-
+            /// section header 信息
             auto hi = addHeader(mhdr, mhPaths[i], totalClasses, unoptimizedTotalClasses);
             if (!hi) {
                 // no objc data in this entry

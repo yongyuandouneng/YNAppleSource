@@ -101,7 +101,8 @@ static void grow_refs_and_insert(weak_entry_t *entry,
     if (old_refs) free(old_refs);
 }
 
-/** 
+/**
+ * 添加弱指针引用
  * Add the given referrer to set of weak pointers in this entry.
  * Does not perform duplicate checking (b/c weak pointers are never
  * added to a set twice). 

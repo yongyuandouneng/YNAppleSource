@@ -143,7 +143,7 @@ enum HaveNew { DontHaveNew = false, DoHaveNew = true };
 struct SideTable {
     /// 保证原子操作的自旋锁
     spinlock_t slock;
-    /// 引用计数的 hash 表
+    /// 引用计数的 hash 表  retain / release 均是操作此表
     RefcountMap refcnts;
     // weak 引用全局 hash 表
     weak_table_t weak_table;
@@ -222,7 +222,7 @@ alignas(StripedMap<SideTable>) static uint8_t
 static void SideTableInit() {
     new (SideTableBuf) StripedMap<SideTable>();
 }
-
+/// 是一个全局的Hash表，里面的内容装的都是SideTable结构体而已
 static StripedMap<SideTable>& SideTables() {
     return *reinterpret_cast<StripedMap<SideTable>*>(SideTableBuf);
 }
@@ -1531,7 +1531,7 @@ objc_object::sidetable_getExtraRC_nolock()
 // SUPPORT_NONPOINTER_ISA
 #endif
 
-
+/// 引用计数 + 1
 id
 objc_object::sidetable_retain()
 {
@@ -1542,6 +1542,7 @@ objc_object::sidetable_retain()
     
     table.lock();
     size_t& refcntStorage = table.refcnts[this];
+    /// 取得 ref size ++
     if (! (refcntStorage & SIDE_TABLE_RC_PINNED)) {
         refcntStorage += SIDE_TABLE_RC_ONE;
     }
@@ -1655,6 +1656,7 @@ objc_object::sidetable_setWeaklyReferenced_nolock()
 // rdar://20206767
 // return uintptr_t instead of bool so that the various raw-isa 
 // -release paths all return zero in eax
+// 引用计数 - 1
 uintptr_t
 objc_object::sidetable_release(bool performDealloc)
 {
@@ -1664,9 +1666,10 @@ objc_object::sidetable_release(bool performDealloc)
     SideTable& table = SideTables()[this];
 
     bool do_dealloc = false;
-
+    /// 取得引用计数表
     table.lock();
     RefcountMap::iterator it = table.refcnts.find(this);
+    /// 减一操作
     if (it == table.refcnts.end()) {
         do_dealloc = true;
         table.refcnts[this] = SIDE_TABLE_DEALLOCATING;
@@ -1678,6 +1681,7 @@ objc_object::sidetable_release(bool performDealloc)
         it->second -= SIDE_TABLE_RC_ONE;
     }
     table.unlock();
+    /// 调用 dealloc 函数
     if (do_dealloc  &&  performDealloc) {
         ((void(*)(objc_object *, SEL))objc_msgSend)(this, SEL_dealloc);
     }

@@ -380,7 +380,7 @@ static NXMapTable *unattachedCategories(void)
 * Records an unattached category.
 * Locking: runtimeLock must be held by the caller.
 **********************************************************************/
-/// 把分类和类进行关联
+/// 将 Category 和它的主类（或元类）注册到哈希表中；
 static void addUnattachedCategoryForClass(category_t *cat, Class cls, 
                                           header_info *catHeader)
 {
@@ -619,6 +619,7 @@ prepareMethodLists(Class cls, method_list_t **addedLists, int addedCount,
 // Attach method lists and properties and protocols from categories to a class.
 // Assumes the categories in cats are all loaded and sorted by load order, 
 // oldest categories first.
+// 整合 属性列表、协议列表、方法列表
 static void 
 attachCategories(Class cls, category_list *cats, bool flush_caches)
 {
@@ -679,7 +680,7 @@ attachCategories(Class cls, category_list *cats, bool flush_caches)
 
 
 /***********************************************************************
-* methodizeClass
+* methodizeClass  从 class_ro_t 方法列表、协议列表、属性列表中 拷贝到 class_rw_t 中
 * Fixes up cls's method list, protocol list, and property list.
 * Attaches any outstanding categories.
 * Locking: runtimeLock must be held by the caller
@@ -697,19 +698,19 @@ static void methodizeClass(Class cls)
         _objc_inform("CLASS: methodizing class '%s' %s", 
                      cls->nameForLogging(), isMeta ? "(meta)" : "");
     }
-
+    /// 方法列表
     // Install methods and properties that the class implements itself.
     method_list_t *list = ro->baseMethods();
     if (list) {
         prepareMethodLists(cls, &list, 1, YES, isBundleClass(cls));
         rw->methods.attachLists(&list, 1);
     }
-
+    /// 属性列表
     property_list_t *proplist = ro->baseProperties;
     if (proplist) {
         rw->properties.attachLists(&proplist, 1);
     }
-
+    /// 协议列表
     protocol_list_t *protolist = ro->baseProtocols;
     if (protolist) {
         rw->protocols.attachLists(&protolist, 1);
@@ -721,7 +722,7 @@ static void methodizeClass(Class cls)
         // root metaclass
         addMethod(cls, SEL_initialize, (IMP)&objc_noop_imp, "", NO);
     }
-
+    /// 关联分类
     // Attach categories.
     category_list *cats = unattachedCategoriesForClass(cls, true /*realizing*/);
     attachCategories(cls, cats, false /*don't flush caches*/);
@@ -1736,8 +1737,11 @@ static Class realizeClass(Class cls)
     assert(cls == remapClass(cls));
 
     // fixme verify class is not in an un-dlopened part of the shared cache?
-
+    // 从 class_data_bits_t 调用 data 方法，将结果从 class_rw_t 强制转换为 class_ro_t 指针
     ro = (const class_ro_t *)cls->data();
+    // 初始化一个 class_rw_t 结构体
+    // 设置结构体 ro 的值以及 flag
+    // 最后设置正确的 data
     if (ro->flags & RO_FUTURE) {
         // This was a future class. rw data is already allocated.
         rw = cls->data();
@@ -1834,7 +1838,8 @@ static Class realizeClass(Class cls)
     } else {
         addRootClass(cls);
     }
-    /// 关联分类
+    /// 上面初始化后 class_rw_t 其他列表 等 都为空
+    /// 关联方法列表、协议列表、属性列表
     // Attach categories
     methodizeClass(cls);
 
@@ -2497,6 +2502,7 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
 #endif
 
     // Discover protocols. Fix up protocol refs.
+    // 加载协议
     for (EACH_HEADER) {
         extern objc_class OBJC_CLASS_$_Protocol;
         Class cls = (Class)&OBJC_CLASS_$_Protocol;
@@ -2528,7 +2534,7 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
     /// 入口对类的处理
     // Realize non-lazy classes (for +load methods and static instances)
     for (EACH_HEADER) {
-        /// 去数据段取出来数据 进行初始化
+        /// 从内存数据段取出来数据 进行初始化
         classref_t *classlist = 
             _getObjc2NonlazyClassList(hi, &count);
         for (i = 0; i < count; i++) {
@@ -2599,9 +2605,10 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
             if (cat->instanceMethods ||  cat->protocols  
                 ||  cat->instanceProperties) 
             {
-                /// 把分类和实例对象进行关联
+                /// 将 Category 和它的主类（或元类）注册到哈希表中；
                 addUnattachedCategoryForClass(cat, cls, hi);
                 if (cls->isRealized()) {
+                    /// 如果主类（或元类）已实现，那么重建它的方法列表。
                     remethodizeClass(cls);
                     classExists = YES;
                 }
@@ -2611,7 +2618,7 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
                                  classExists ? "on existing class" : "");
                 }
             }
-
+            /// 类方法
             if (cat->classMethods  ||  cat->protocols  
                 ||  (hasClassProperties && cat->_classProperties)) 
             {

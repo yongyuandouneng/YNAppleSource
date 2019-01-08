@@ -13,8 +13,6 @@ int main(int argc, const char * argv[]) {
         
        People *people = [[People alloc] init];
         
-        
-        
     }
     return 0;
 }
