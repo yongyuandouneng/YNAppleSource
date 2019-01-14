@@ -697,7 +697,7 @@ class list_array_tt {
             return &list;
         }
     }
-    
+    /// 添加方法
     void attachLists(List* const * addedLists, uint32_t addedCount) {
         if (addedCount == 0) return;
 
@@ -707,7 +707,9 @@ class list_array_tt {
             uint32_t newCount = oldCount + addedCount;
             setArray((array_t *)realloc(array(), array_t::byteSize(newCount)));
             array()->count = newCount;
-            memmove(array()->lists + addedCount, array()->lists, 
+            /// lists 是 类方法列表   addedLists 是分类方法列表
+            /// 先移动 再 拷贝到前面
+            memmove(array()->lists + addedCount, array()->lists,
                     oldCount * sizeof(array()->lists[0]));
             memcpy(array()->lists, addedLists, 
                    addedCount * sizeof(array()->lists[0]));

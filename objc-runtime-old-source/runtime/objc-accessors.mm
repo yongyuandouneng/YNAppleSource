@@ -66,7 +66,7 @@ id objc_getProperty(id self, SEL _cmd, ptrdiff_t offset, BOOL atomic) {
 
 
 static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t offset, bool atomic, bool copy, bool mutableCopy) __attribute__((always_inline));
-
+/// setter
 static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t offset, bool atomic, bool copy, bool mutableCopy)
 {
     if (offset == 0) {
@@ -77,26 +77,26 @@ static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t o
     id oldValue;
     id *slot = (id*) ((char*)self + offset);
 
-    if (copy) {
+    if (copy) { // copy attribute
         newValue = [newValue copyWithZone:nil];
-    } else if (mutableCopy) {
+    } else if (mutableCopy) { // mutableCopy attribute
         newValue = [newValue mutableCopyWithZone:nil];
-    } else {
+    } else { /// retain 新值
         if (*slot == newValue) return;
         newValue = objc_retain(newValue);
     }
-
+    /// 不是 atomic 直接赋值， 是atomic 加 spinlock 再赋值
     if (!atomic) {
         oldValue = *slot;
         *slot = newValue;
-    } else {
+    } else { /// 直接加锁 自旋锁
         spinlock_t& slotlock = PropertyLocks[slot];
         slotlock.lock();
         oldValue = *slot;
         *slot = newValue;        
         slotlock.unlock();
     }
-
+    /// 释放旧值
     objc_release(oldValue);
 }
 

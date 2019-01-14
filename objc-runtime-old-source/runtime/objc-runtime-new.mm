@@ -637,17 +637,18 @@ attachCategories(Class cls, category_list *cats, bool flush_caches)
         malloc(cats->count * sizeof(*protolists));
 
     // Count backwards through cats to get newest categories first
-    // 生成了所有method的list之后，调用attachMethodLists将所有方法前序添加进类的方法的数组中，也就是说，如果原来类的方法是a,b,c，类别的方法是1,2,3，那么插入之后的方法将会是a,b,c,1,2,3,，也就是说，原来类的方法被category的方法覆盖了，但被覆盖的方法确实还在那里。
+    // 生成了所有method的list之后，调用attachMethodLists将所有方法前序添加进类的方法的数组中，也就是说，如果原来类的方法是a,b,c，类别的方法是1,2,3，那么插入之后的方法将会是a,b,c,3,2,1,，也就是说，原来类的方法被category的方法覆盖了，但被覆盖的方法确实还在那里。
     int mcount = 0;
     int propcount = 0;
     int protocount = 0;
     int i = cats->count;
     bool fromBundle = NO;
     while (i--) {
+        /// 取得 分类中的方法
         auto& entry = cats->list[i];
-
         method_list_t *mlist = entry.cat->methodsForMeta(isMeta);
         if (mlist) {
+            /// 原始方法 ++
             mlists[mcount++] = mlist;
             fromBundle |= entry.hi->isBundle();
         }
@@ -663,12 +664,13 @@ attachCategories(Class cls, category_list *cats, bool flush_caches)
             protolists[protocount++] = protolist;
         }
     }
-
+    /// 取得 class_rw_t
     auto rw = cls->data();
     /// 合并
     prepareMethodLists(cls, mlists, mcount, NO, fromBundle);
     rw->methods.attachLists(mlists, mcount);
     free(mlists);
+    /// 刷新方法缓存
     if (flush_caches  &&  mcount > 0) flushCaches(cls);
 
     rw->properties.attachLists(proplists, propcount);
@@ -4462,15 +4464,17 @@ static method_t *findMethodInSortedMethodList(SEL key, const method_list_t *list
 * fixme
 * Locking: runtimeLock must be read- or write-locked by the caller
 **********************************************************************/
+/// 查询方法列表 根据 Method.name 与 sel 匹配
 static method_t *search_method_list(const method_list_t *mlist, SEL sel)
 {
     int methodListIsFixedUp = mlist->isFixedUp();
     int methodListHasExpectedSize = mlist->entsize() == sizeof(method_t);
-    
+    /// 排好序是二分法遍历
     if (__builtin_expect(methodListIsFixedUp && methodListHasExpectedSize, 1)) {
         return findMethodInSortedMethodList(sel, mlist);
     } else {
         // Linear search of unsorted method list
+        /// 这里是顺序遍历
         for (auto& meth : *mlist) {
             if (meth.name == sel) return &meth;
         }

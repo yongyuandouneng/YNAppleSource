@@ -136,6 +136,7 @@ typedef struct {
     CFHashCode	(*hash)(const void *info);
     void	(*schedule)(void *info, CFRunLoopRef rl, CFStringRef mode);
     void	(*cancel)(void *info, CFRunLoopRef rl, CFStringRef mode);
+    /// 回调指针
     void	(*perform)(void *info);
 } CFRunLoopSourceContext;
 
@@ -149,13 +150,15 @@ typedef struct {
     Boolean	(*equal)(const void *info1, const void *info2);
     CFHashCode	(*hash)(const void *info);
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+    /// mach_port_t 消息端口
     mach_port_t	(*getPort)(void *info);
+    /// 回调指针
     void *	(*perform)(void *msg, CFIndex size, CFAllocatorRef allocator, void *info);
 #else
     void *	(*getPort)(void *info);
     void	(*perform)(void *info);
 #endif
-} CFRunLoopSourceContext1;
+} CFRunLoopSourceContext1;  
 
 /// 获取Source 类型 ID
 CF_EXPORT CFTypeID CFRunLoopSourceGetTypeID(void);

@@ -7,28 +7,44 @@
 //
 
 #import "ViewController.h"
+#import "People.h"
+
+typedef void(^BlockA)(void);
 
 @interface ViewController ()
 
+@property (nonatomic, weak) void (^blockA)();
+@property (nonatomic, copy) NSArray *blocks;
 @end
 
 @implementation ViewController
 
+
 - (void)viewDidLoad {
     [super viewDidLoad];
+    NSMutableString *name = [[NSMutableString alloc] initWithString:@"你为什么叫阿水？"];
+    People *person = [[People alloc] init];
+    person.name = name;
+    NSLog(@"前值 person.name: %@", person.name);
+    [name appendString:@"我不知道，他们给我起的名"];;
+    NSLog(@"后值 person.name: %@", person.name);
     
-//    [self performSelector:@selector(onClick:) withObject:@"1"];
+//    NSString *string = @"boy";
 //
-//    [self performSelector:@selector(onClick:) withObject:@"1" afterDelay:10];
-    [self performSelectorOnMainThread:@selector(onClick:) withObject:@"1" waitUntilDone:YES];
+//    _blocks = [[NSArray alloc] initWithObjects:^{NSLog(@"HelloWorld, %@", string);}, ^{NSLog(@"Hello2World, %@", string);}, ^{NSLog(@"HelloWorld");}, nil];
     
 }
+
+
 - (IBAction)onClick:(id)sender {
-    NSLog(@"---");
+    
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    NSLog(@"---");
+    for (BlockA blockA in _blocks) {
+        NSLog(@"%@", [blockA class]);
+        blockA();
+    }
 }
 
 @end

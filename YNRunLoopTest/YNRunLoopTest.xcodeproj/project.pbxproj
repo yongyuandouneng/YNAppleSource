@@ -13,6 +13,7 @@
 		2E30E4C421212F2100605CC9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2E30E4C321212F2100605CC9 /* Assets.xcassets */; };
 		2E30E4C721212F2100605CC9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2E30E4C521212F2100605CC9 /* LaunchScreen.storyboard */; };
 		2E30E4CA21212F2100605CC9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E30E4C921212F2100605CC9 /* main.m */; };
+		2E75B0D221EA2F62002F14F0 /* People.m in Sources */ = {isa = PBXBuildFile; fileRef = 2E75B0D121EA2F62002F14F0 /* People.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,8 @@
 		2E30E4C921212F2100605CC9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		2E30E4D321212FC600605CC9 /* CFRunLoop.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CFRunLoop.h; path = "../../RunLoopCF-1153.18/CFRunLoop.h"; sourceTree = "<group>"; };
 		2E30E4D421212FC600605CC9 /* CFRunLoop.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = CFRunLoop.c; path = "../../RunLoopCF-1153.18/CFRunLoop.c"; sourceTree = "<group>"; };
+		2E75B0D021EA2F62002F14F0 /* People.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = People.h; sourceTree = "<group>"; };
+		2E75B0D121EA2F62002F14F0 /* People.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = People.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +74,8 @@
 				2E30E4C521212F2100605CC9 /* LaunchScreen.storyboard */,
 				2E30E4C821212F2100605CC9 /* Info.plist */,
 				2E30E4C921212F2100605CC9 /* main.m */,
+				2E75B0D021EA2F62002F14F0 /* People.h */,
+				2E75B0D121EA2F62002F14F0 /* People.m */,
 			);
 			path = YNRunLoopTest;
 			sourceTree = "<group>";
@@ -146,6 +151,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2E75B0D221EA2F62002F14F0 /* People.m in Sources */,
 				2E30E4BF21212F2100605CC9 /* ViewController.m in Sources */,
 				2E30E4CA21212F2100605CC9 /* main.m in Sources */,
 				2E30E4BC21212F2100605CC9 /* AppDelegate.m in Sources */,
