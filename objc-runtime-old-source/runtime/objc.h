@@ -45,7 +45,7 @@ struct objc_object {
 };
 
 /// A pointer to an instance of a class.
-/// id指针指向类对象
+/// id指针指向实例对象
 typedef struct objc_object *id;
 #endif
 

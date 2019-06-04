@@ -530,23 +530,30 @@ struct locstamped_category_list_t {
 
 #endif
 
-/// 编译期决定 readOnly
+/// 编译期决定 readOnly 存储的大多是类在编译时就已经确定的信息
 struct class_ro_t {
+    // 存储了很多在编译时期就确定的类的信息
     uint32_t flags;
+    // 其实偏移量
     uint32_t instanceStart;
+    // 实例化大小
     uint32_t instanceSize;
 #ifdef __LP64__
     uint32_t reserved;
 #endif
 
     const uint8_t * ivarLayout;
-    
+    // 昵称
     const char * name;
+    // 方法列表一维数组
     method_list_t * baseMethodList;
+    // 指针列表一维数组
     protocol_list_t * baseProtocols;
+    // 实例变量列表一维数组
     const ivar_list_t * ivars;
 
     const uint8_t * weakIvarLayout;
+    // 属性列表一维数组
     property_list_t *baseProperties;
 
     method_list_t *baseMethods() const {
@@ -1308,6 +1315,8 @@ struct objc_class : objc_object {
         return word_align(unalignedInstanceSize());
     }
     /// alignedInstanceSize() 内存对齐后是8个字节，
+    /// 结构体的大小是 最大成员变量的最大倍数
+    /// malloc_size 内存分配是  16 32 48 64  递增 64
     /// 由于extraBytes等于0，因此 size < 16成立，所以最终的 size 返回的是16！
     size_t instanceSize(size_t extraBytes) {
         size_t size = alignedInstanceSize() + extraBytes;

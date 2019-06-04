@@ -637,7 +637,7 @@ static void _class_resolveInstanceMethod(Class cls, SEL sel, id inst)
         // Resolver not implemented.
         return;
     }
-
+   // 发送消息 SEL_resolveInstanceMethod
     BOOL (*msg)(Class, SEL, SEL) = (__typeof__(msg))objc_msgSend;
     bool resolved = msg(cls, SEL_resolveInstanceMethod, sel);
 
@@ -673,6 +673,7 @@ static void _class_resolveInstanceMethod(Class cls, SEL sel, id inst)
 **********************************************************************/
 void _class_resolveMethod(Class cls, SEL sel, id inst)
 {
+    // 是元类
     if (! cls->isMetaClass()) {
         // try [cls resolveInstanceMethod:sel]
         _class_resolveInstanceMethod(cls, sel, inst);

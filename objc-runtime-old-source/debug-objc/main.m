@@ -1,18 +1,16 @@
+//
 //  main.m
 //  debug-objc
 //
-//  Created by closure on 2/24/16.
-//
+//  Created by ZYN on 2019/3/18.
 //
 
 #import <Foundation/Foundation.h>
-#import "People.h"
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
-        
-       People *people = [[People alloc] init];
-        
+        // insert code here...
+        NSLog(@"Hello, World!");
     }
     return 0;
 }

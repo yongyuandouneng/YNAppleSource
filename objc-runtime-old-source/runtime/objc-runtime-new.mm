@@ -629,6 +629,7 @@ attachCategories(Class cls, category_list *cats, bool flush_caches)
     bool isMeta = cls->isMetaClass();
 
     // fixme rearrange to remove these intermediate allocations
+    /// 待放入的二维数组[[method1, method2], []];
     method_list_t **mlists = (method_list_t **)
         malloc(cats->count * sizeof(*mlists));
     property_list_t **proplists = (property_list_t **)
@@ -636,14 +637,12 @@ attachCategories(Class cls, category_list *cats, bool flush_caches)
     protocol_list_t **protolists = (protocol_list_t **)
         malloc(cats->count * sizeof(*protolists));
 
-    // Count backwards through cats to get newest categories first
-    // 生成了所有method的list之后，调用attachMethodLists将所有方法前序添加进类的方法的数组中，也就是说，如果原来类的方法是a,b,c，类别的方法是1,2,3，那么插入之后的方法将会是a,b,c,3,2,1,，也就是说，原来类的方法被category的方法覆盖了，但被覆盖的方法确实还在那里。
     int mcount = 0;
     int propcount = 0;
     int protocount = 0;
     int i = cats->count;
     bool fromBundle = NO;
-    while (i--) {
+    while (i--) { // 最先访问最后编译的分类
         /// 取得 分类中的方法
         auto& entry = cats->list[i];
         method_list_t *mlist = entry.cat->methodsForMeta(isMeta);
@@ -4663,7 +4662,7 @@ IMP lookUpImpOrForward(Class cls, SEL sel, id inst,
         runtimeLock.unlockWrite();
         runtimeLock.read();
     }
-    /// 调用 initalize 类方法
+    /// 调用 initalize 类方法  根据元类的 databit -> flag 标志存储位置
     if (initialize  &&  !cls->isInitialized()) {
         runtimeLock.unlockRead();
         _class_initialize (_class_getNonMetaClass(cls, inst));
@@ -4735,6 +4734,7 @@ IMP lookUpImpOrForward(Class cls, SEL sel, id inst,
 
     if (resolver  &&  !triedResolver) {
         runtimeLock.unlockRead();
+        // 进入消息转发流程
         _class_resolveMethod(cls, sel, inst);
         runtimeLock.read();
         // Don't cache the result; we don't hold the lock so it may have 
