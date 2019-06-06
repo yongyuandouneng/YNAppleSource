@@ -21,6 +21,7 @@ typedef void(^BlockA)(void);
 
 
 - (void)viewDidLoad {
+    
     [super viewDidLoad];
     NSMutableString *name = [[NSMutableString alloc] initWithString:@"你为什么叫阿水？"];
     People *person = [[People alloc] init];

@@ -957,7 +957,7 @@ struct __CFRunLoopTimer {
     CFAbsoluteTime _nextFireDate;
     /// 时间间隔
     CFTimeInterval _interval;		/* immutable */
-    ///
+    /// 宽容时间
     CFTimeInterval _tolerance;          /* mutable */
     uint64_t _fireTSR;			/* TSR units */
     CFIndex _order;			/* immutable */
@@ -1848,7 +1848,8 @@ static Boolean __CFRunLoopDoSource1(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRun
     __CFRunLoopModeLock(rlm);
     return sourceHandled;
 }
-/// 将Timer加入到 Array里面 返回下标
+// 根据timer的_fireTSR时间字段，利用二分查找的算法，将timer插入到已按照时间排列好的timerArray（rlm_timers）中，
+// 这个rlm_timers的array是按照fireTSR的升序排列的
 static CFIndex __CFRunLoopInsertionIndexInTimerArray(CFArrayRef array, CFRunLoopTimerRef rlt) __attribute__((noinline));
 static CFIndex __CFRunLoopInsertionIndexInTimerArray(CFArrayRef array, CFRunLoopTimerRef rlt) {
     CFIndex cnt = CFArrayGetCount(array);
@@ -1885,6 +1886,7 @@ static CFIndex __CFRunLoopInsertionIndexInTimerArray(CFArrayRef array, CFRunLoop
     return lastTestLEQ ? idx + 1 : idx;
 }
 #pragma mark - 处理Mode的下个到来的Timer
+// 根据mode中的最前面的那个timer的触发时间，将其通过dispatch_source_set_runloop_timer或者mk_timer的方式注册。
 static void __CFArmNextTimerInMode(CFRunLoopModeRef rlm, CFRunLoopRef rl) {    
     uint64_t nextHardDeadline = UINT64_MAX;
     uint64_t nextSoftDeadline = UINT64_MAX;
@@ -1899,11 +1901,14 @@ static void __CFArmNextTimerInMode(CFRunLoopModeRef rlm, CFRunLoopRef rl) {
             if (__CFRunLoopTimerIsFiring(t)) continue;
             
             int32_t err = CHECKINT_NO_ERROR;
+            // SoftDeadline是理应触发的时间
             uint64_t oneTimerSoftDeadline = t->_fireTSR;
+            // HardDeadline是理应触发的时间加上tolerance
             uint64_t oneTimerHardDeadline = check_uint64_add(t->_fireTSR, __CFTimeIntervalToTSR(t->_tolerance), &err);
             if (err != CHECKINT_NO_ERROR) oneTimerHardDeadline = UINT64_MAX;
             
             // We can stop searching if the soft deadline for this timer exceeds the current hard deadline. Otherwise, later timers with lower tolerance could still have earlier hard deadlines.
+            // 通过这几行代码对deadline进行修正，保证前边的长tolerance的timer不会影响后面的timer的触发
             if (oneTimerSoftDeadline > nextHardDeadline) {
                 break;
             }
@@ -1926,7 +1931,9 @@ static void __CFArmNextTimerInMode(CFRunLoopModeRef rlm, CFRunLoopRef rl) {
             uint64_t leeway = __CFTSRToNanoseconds(nextHardDeadline - nextSoftDeadline);
             dispatch_time_t deadline = __CFTSRToDispatchTime(nextSoftDeadline);
 #if USE_MK_TIMER_TOO
+            
             if (leeway > 0) {
+                // 对于有leeway的情况（有tolerance的情况），只采用_dispatch_source_set_runloop_timer_4CF的方法
                 // Only use the dispatch timer if we have any leeway
                 // <rdar://problem/14447675>
                 
@@ -1941,6 +1948,7 @@ static void __CFArmNextTimerInMode(CFRunLoopModeRef rlm, CFRunLoopRef rl) {
                 _dispatch_source_set_runloop_timer_4CF(rlm->_timerSource, deadline, DISPATCH_TIME_FOREVER, leeway);
                 rlm->_dispatchTimerArmed = true;
             } else {
+                // 对于leeway为0的情况（无tolerance的情况）,采用mk_timer的方式
                 // Cancel the dispatch timer
                 if (rlm->_dispatchTimerArmed) {
                     // Cancel the dispatch timer
@@ -1964,7 +1972,7 @@ static void __CFArmNextTimerInMode(CFRunLoopModeRef rlm, CFRunLoopRef rl) {
 #endif
         } else if (nextSoftDeadline == UINT64_MAX) {
             // Disarm the timers - there is no timer scheduled
-            
+            // 移除timer
             if (rlm->_mkTimerArmed && rlm->_timerPort) {
                 AbsoluteTime dummy;
                 mk_timer_cancel(rlm->_timerPort, &dummy);
@@ -1984,7 +1992,7 @@ static void __CFArmNextTimerInMode(CFRunLoopModeRef rlm, CFRunLoopRef rl) {
 }
 
 // call with rlm and its run loop locked, and the TSRLock locked; rlt not locked; returns with same state
-/// 重置下个到来的 Timer
+/// 重新排列这个mode中的所有timer触发时刻
 static void __CFRepositionTimerInMode(CFRunLoopModeRef rlm, CFRunLoopTimerRef rlt, Boolean isInArray) __attribute__((noinline));
 static void __CFRepositionTimerInMode(CFRunLoopModeRef rlm, CFRunLoopTimerRef rlt, Boolean isInArray) {
     if (!rlt) return;
@@ -2003,8 +2011,11 @@ static void __CFRepositionTimerInMode(CFRunLoopModeRef rlm, CFRunLoopTimerRef rl
         }
     }
     if (!found && isInArray) return;
+    /// 根据timer的_fireTSR时间字段，利用二分查找的算法，将timer插入到已按照时间排列好的timerArray（rlm_timers）中，
+    /// 这个rlm_timers的array是按照fireTSR的升序排列的
     CFIndex newIdx = __CFRunLoopInsertionIndexInTimerArray(timerArray, rlt);
     CFArrayInsertValueAtIndex(timerArray, newIdx, rlt);
+    // 根据mode中的最前面的那个timer的触发时间，将其通过dispatch_source_set_runloop_timer或者mk_timer的方式注册。
     __CFArmNextTimerInMode(rlm, rlt->_runLoop);
     if (isInArray) CFRelease(rlt);
 }
@@ -3157,11 +3168,12 @@ void CFRunLoopAddTimer(CFRunLoopRef rl, CFRunLoopTimerRef rlt, CFStringRef modeN
         if (NULL != set) {
             CFTypeRef context[2] = {rl, rlt};
             /* add new item to all common-modes */
-            /// 把新的item 加入到 commonModes 去
+            /// 遍历copy出来的set集合 把新的item 加入到 commonModes 去
             CFSetApplyFunction(set, (__CFRunLoopAddItemToCommonModes), (void *)context);
             CFRelease(set);
         }
-    } else {
+    } else { // 不在 kCFRunLoopCommonModes
+        /// 找到RunLoopMode
         CFRunLoopModeRef rlm = __CFRunLoopFindMode(rl, modeName, true);
         if (NULL != rlm) {
             if (NULL == rlm->_timers) {
@@ -3180,9 +3192,11 @@ void CFRunLoopAddTimer(CFRunLoopRef rl, CFRunLoopTimerRef rlt, CFStringRef modeN
                 __CFRunLoopUnlock(rl);
                 return;
             }
+            // mode name 加入到 runLoopModes集合里面
             CFSetAddValue(rlt->_rlModes, rlm->_name);
             __CFRunLoopTimerUnlock(rlt);
             __CFRunLoopTimerFireTSRLock();
+            // 重新排列这个mode中的所有timer触发时刻，吧timer加入到array中
             __CFRepositionTimerInMode(rlm, rlt, false);
             __CFRunLoopTimerFireTSRUnlock();
             if (!_CFExecutableLinkedOnOrAfter(CFSystemVersionLion)) {
