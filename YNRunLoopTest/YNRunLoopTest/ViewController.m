@@ -23,19 +23,12 @@ typedef void(^BlockA)(void);
 - (void)viewDidLoad {
     
     [super viewDidLoad];
-    NSMutableString *name = [[NSMutableString alloc] initWithString:@"你为什么叫阿水？"];
-    People *person = [[People alloc] init];
-    person.name = name;
-    NSLog(@"前值 person.name: %@", person.name);
-    [name appendString:@"我不知道，他们给我起的名"];;
-    NSLog(@"后值 person.name: %@", person.name);
     
 //    NSString *string = @"boy";
 //
 //    _blocks = [[NSArray alloc] initWithObjects:^{NSLog(@"HelloWorld, %@", string);}, ^{NSLog(@"Hello2World, %@", string);}, ^{NSLog(@"HelloWorld");}, nil];
     
 }
-
 
 - (IBAction)onClick:(id)sender {
     

@@ -1926,50 +1926,50 @@ static void __CFArmNextTimerInMode(CFRunLoopModeRef rlm, CFRunLoopRef rl) {
             if (CFRUNLOOP_NEXT_TIMER_ARMED_ENABLED()) {
                 CFRUNLOOP_NEXT_TIMER_ARMED((unsigned long)(nextSoftDeadline - mach_absolute_time()));
             }
-#if USE_DISPATCH_SOURCE_FOR_TIMERS
-            // We're going to hand off the range of allowable timer fire date to dispatch and let it fire when appropriate for the system.
-            uint64_t leeway = __CFTSRToNanoseconds(nextHardDeadline - nextSoftDeadline);
-            dispatch_time_t deadline = __CFTSRToDispatchTime(nextSoftDeadline);
-#if USE_MK_TIMER_TOO
-            
-            if (leeway > 0) {
-                // 对于有leeway的情况（有tolerance的情况），只采用_dispatch_source_set_runloop_timer_4CF的方法
-                // Only use the dispatch timer if we have any leeway
-                // <rdar://problem/14447675>
-                
-                // Cancel the mk timer
-                if (rlm->_mkTimerArmed && rlm->_timerPort) {
-                    AbsoluteTime dummy;
-                    mk_timer_cancel(rlm->_timerPort, &dummy);
-                    rlm->_mkTimerArmed = false;
-                }
-                
-                // Arm the dispatch timer
-                _dispatch_source_set_runloop_timer_4CF(rlm->_timerSource, deadline, DISPATCH_TIME_FOREVER, leeway);
-                rlm->_dispatchTimerArmed = true;
-            } else {
-                // 对于leeway为0的情况（无tolerance的情况）,采用mk_timer的方式
-                // Cancel the dispatch timer
-                if (rlm->_dispatchTimerArmed) {
-                    // Cancel the dispatch timer
-                    _dispatch_source_set_runloop_timer_4CF(rlm->_timerSource, DISPATCH_TIME_FOREVER, DISPATCH_TIME_FOREVER, 888);
-                    rlm->_dispatchTimerArmed = false;
-                }
-                
-                // Arm the mk timer
-                if (rlm->_timerPort) {
-                    mk_timer_arm(rlm->_timerPort, __CFUInt64ToAbsoluteTime(nextSoftDeadline));
-                    rlm->_mkTimerArmed = true;
-                }
-            }
-#else
-            _dispatch_source_set_runloop_timer_4CF(rlm->_timerSource, deadline, DISPATCH_TIME_FOREVER, leeway);
-#endif
-#else
+//#if USE_DISPATCH_SOURCE_FOR_TIMERS
+//            // We're going to hand off the range of allowable timer fire date to dispatch and let it fire when appropriate for the system.
+//            uint64_t leeway = __CFTSRToNanoseconds(nextHardDeadline - nextSoftDeadline);
+//            dispatch_time_t deadline = __CFTSRToDispatchTime(nextSoftDeadline);
+//#if USE_MK_TIMER_TOO
+//
+//            if (leeway > 0) {
+//                // 对于有leeway的情况（有tolerance的情况），只采用_dispatch_source_set_runloop_timer_4CF的方法
+//                // Only use the dispatch timer if we have any leeway
+//                // <rdar://problem/14447675>
+//
+//                // Cancel the mk timer
+//                if (rlm->_mkTimerArmed && rlm->_timerPort) {
+//                    AbsoluteTime dummy;
+//                    mk_timer_cancel(rlm->_timerPort, &dummy);
+//                    rlm->_mkTimerArmed = false;
+//                }
+//
+//                // Arm the dispatch timer
+//                _dispatch_source_set_runloop_timer_4CF(rlm->_timerSource, deadline, DISPATCH_TIME_FOREVER, leeway);
+//                rlm->_dispatchTimerArmed = true;
+//            } else {
+//                // 对于leeway为0的情况（无tolerance的情况）,采用mk_timer的方式
+//                // Cancel the dispatch timer
+//                if (rlm->_dispatchTimerArmed) {
+//                    // Cancel the dispatch timer
+//                    _dispatch_source_set_runloop_timer_4CF(rlm->_timerSource, DISPATCH_TIME_FOREVER, DISPATCH_TIME_FOREVER, 888);
+//                    rlm->_dispatchTimerArmed = false;
+//                }
+//
+//                // Arm the mk timer
+//                if (rlm->_timerPort) {
+//                    mk_timer_arm(rlm->_timerPort, __CFUInt64ToAbsoluteTime(nextSoftDeadline));
+//                    rlm->_mkTimerArmed = true;
+//                }
+//            }
+//#else
+//            _dispatch_source_set_runloop_timer_4CF(rlm->_timerSource, deadline, DISPATCH_TIME_FOREVER, leeway);
+//#endif
+//#else
             if (rlm->_timerPort) {
                 mk_timer_arm(rlm->_timerPort, __CFUInt64ToAbsoluteTime(nextSoftDeadline));
             }
-#endif
+//#endif
         } else if (nextSoftDeadline == UINT64_MAX) {
             // Disarm the timers - there is no timer scheduled
             // 移除timer
@@ -1979,12 +1979,12 @@ static void __CFArmNextTimerInMode(CFRunLoopModeRef rlm, CFRunLoopRef rl) {
                 rlm->_mkTimerArmed = false;
             }
             
-#if USE_DISPATCH_SOURCE_FOR_TIMERS
-            if (rlm->_dispatchTimerArmed) {
-                _dispatch_source_set_runloop_timer_4CF(rlm->_timerSource, DISPATCH_TIME_FOREVER, DISPATCH_TIME_FOREVER, 333);
-                rlm->_dispatchTimerArmed = false;
-            }
-#endif
+//#if USE_DISPATCH_SOURCE_FOR_TIMERS
+//            if (rlm->_dispatchTimerArmed) {
+//                _dispatch_source_set_runloop_timer_4CF(rlm->_timerSource, DISPATCH_TIME_FOREVER, DISPATCH_TIME_FOREVER, 333);
+//                rlm->_dispatchTimerArmed = false;
+//            }
+//#endif
         }
     }
     rlm->_timerHardDeadline = nextHardDeadline;
@@ -2020,7 +2020,7 @@ static void __CFRepositionTimerInMode(CFRunLoopModeRef rlm, CFRunLoopTimerRef rl
     if (isInArray) CFRelease(rlt);
 }
 
-#pragma mark - 处理Timer
+#pragma mark - 处理Timer __CFRunLoopDoTimer
 // mode and rl are locked on entry and exit
 static Boolean __CFRunLoopDoTimer(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLoopTimerRef rlt) {	/* DOES CALLOUT */
     Boolean timerHandled = false;
@@ -2031,6 +2031,7 @@ static Boolean __CFRunLoopDoTimer(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLo
     __CFRunLoopTimerLock(rlt);
     
     if (__CFIsValid(rlt) && rlt->_fireTSR <= mach_absolute_time() && !__CFRunLoopTimerIsFiring(rlt) && rlt->_runLoop == rl) {
+        // 构建回调上下文
         void *context_info = NULL;
         void (*context_release)(const void *) = NULL;
         if (rlt->_context.retain) {
@@ -2039,22 +2040,28 @@ static Boolean __CFRunLoopDoTimer(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLo
         } else {
             context_info = rlt->_context.info;
         }
+        
         Boolean doInvalidate = (0.0 == rlt->_interval);
+        // 设置rlt启动中
         __CFRunLoopTimerSetFiring(rlt);
+        // 重置值，方便寻找最早时间的定时器，进行设置端口
         // Just in case the next timer has exactly the same deadlines as this one, we reset these values so that the arm next timer code can correctly find the next timer in the list and arm the underlying timer.
         rlm->_timerSoftDeadline = UINT64_MAX;
         rlm->_timerHardDeadline = UINT64_MAX;
         __CFRunLoopTimerUnlock(rlt);
         __CFRunLoopTimerFireTSRLock();
+        // 记录 即将已经回调出callback 时间点
         oldFireTSR = rlt->_fireTSR;
         __CFRunLoopTimerFireTSRUnlock();
-        
+        // 重新注册最早timer port 时间点
         __CFArmNextTimerInMode(rlm, rl);
         
         __CFRunLoopModeUnlock(rlm);
         __CFRunLoopUnlock(rl);
+        // 回调callback
         __CFRUNLOOP_IS_CALLING_OUT_TO_A_TIMER_CALLBACK_FUNCTION__(rlt->_callout, rlt, context_info);
         CHECK_FOR_FORK();
+        // 时间间隔等于0 则移除定时器
         if (doInvalidate) {
             CFRunLoopTimerInvalidate(rlt);      /* DOES CALLOUT */
         }
@@ -2083,6 +2090,7 @@ static Boolean __CFRunLoopDoTimer(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLo
             // timer instead of whatever was chosen.
             __CFArmNextTimerInMode(rlm, rl);
         } else {
+            // 重新计算 下次到来的世界
             uint64_t nextFireTSR = 0LL;
             uint64_t intervalTSR = 0LL;
             if (rlt->_interval <= 0.0) {
@@ -2110,6 +2118,7 @@ static Boolean __CFRunLoopDoTimer(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLo
                 CFRetain(rlt_rl);
                 CFIndex cnt = CFSetGetCount(rlt->_rlModes);
                 STACK_BUFFER_DECL(CFTypeRef, modes, cnt);
+                // 取出time里面modes里面
                 CFSetGetValues(rlt->_rlModes, (const void **)modes);
                 // To avoid A->B, B->A lock ordering issues when coming up
                 // towards the run loop from a source, the timer has to be
@@ -2533,15 +2542,15 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             CFRUNLOOP_WAKEUP_FOR_WAKEUP();
         }
         /// 如果一个 Timer 到时间了，触发这个Timer的回调。
-#if USE_DISPATCH_SOURCE_FOR_TIMERS
-        else if (modeQueuePort != MACH_PORT_NULL && livePort == modeQueuePort) {
-            CFRUNLOOP_WAKEUP_FOR_TIMER();
-            if (!__CFRunLoopDoTimers(rl, rlm, mach_absolute_time())) {
-                // Re-arm the next timer, because we apparently fired early
-                __CFArmNextTimerInMode(rlm, rl);
-            }
-        }
-#endif
+//#if USE_DISPATCH_SOURCE_FOR_TIMERS
+//        else if (modeQueuePort != MACH_PORT_NULL && livePort == modeQueuePort) {
+//            CFRUNLOOP_WAKEUP_FOR_TIMER();
+//            if (!__CFRunLoopDoTimers(rl, rlm, mach_absolute_time())) {
+//                // Re-arm the next timer, because we apparently fired early
+//                __CFArmNextTimerInMode(rlm, rl);
+//            }
+//        }
+//#endif
         /// 如果一个 Timer 到时间了，触发这个Timer的回调。 x
 #if USE_MK_TIMER_TOO
         else if (rlm->_timerPort != MACH_PORT_NULL && livePort == rlm->_timerPort) {
@@ -2845,7 +2854,7 @@ Boolean CFRunLoopContainsSource(CFRunLoopRef rl, CFRunLoopSourceRef rls, CFStrin
     __CFRunLoopUnlock(rl);
     return hasValue;
 }
-/// 为RunLoop中的Mode添加Source
+#pragma mark - 为RunLoop中的Mode添加Source
 void CFRunLoopAddSource(CFRunLoopRef rl, CFRunLoopSourceRef rls, CFStringRef modeName) {	/* DOES CALLOUT */
     CHECK_FOR_FORK();
     if (__CFRunLoopIsDeallocating(rl)) return;
@@ -3046,7 +3055,8 @@ Boolean CFRunLoopContainsObserver(CFRunLoopRef rl, CFRunLoopObserverRef rlo, CFS
     __CFRunLoopUnlock(rl);
     return hasValue;
 }
-/// 从RunLoop中的Mode添加观察者
+
+#pragma mark - 从RunLoop中的Mode添加观察者
 void CFRunLoopAddObserver(CFRunLoopRef rl, CFRunLoopObserverRef rlo, CFStringRef modeName) {
     CHECK_FOR_FORK();
     CFRunLoopModeRef rlm;
@@ -3149,7 +3159,8 @@ Boolean CFRunLoopContainsTimer(CFRunLoopRef rl, CFRunLoopTimerRef rlt, CFStringR
     __CFRunLoopUnlock(rl);
     return hasValue;
 }
-/// 在RunLoop中的Mode添加TIMER
+
+#pragma mark - 在RunLoop中的Mode添加TIMER
 void CFRunLoopAddTimer(CFRunLoopRef rl, CFRunLoopTimerRef rlt, CFStringRef modeName) {    
     CHECK_FOR_FORK();
     if (__CFRunLoopIsDeallocating(rl)) return;
@@ -3253,7 +3264,8 @@ void CFRunLoopRemoveTimer(CFRunLoopRef rl, CFRunLoopTimerRef rlt, CFStringRef mo
     }
     __CFRunLoopUnlock(rl);
 }
-
+#pragma mark -
+#pragma mark CFRunLoopSourceRef
 /* CFRunLoopSource */
 /// 判断两个事件源是否相等
 static Boolean __CFRunLoopSourceEqual(CFTypeRef cf1, CFTypeRef cf2) {	/* DOES CALLOUT */
@@ -3336,7 +3348,8 @@ CFTypeID CFRunLoopSourceGetTypeID(void) {
     dispatch_once(&initOnce, ^{ __kCFRunLoopSourceTypeID = _CFRuntimeRegisterClass(&__CFRunLoopSourceClass); });
     return __kCFRunLoopSourceTypeID;
 }
-/// 创建Source事件源
+
+#pragma mark - 创建Source事件源
 CFRunLoopSourceRef CFRunLoopSourceCreate(CFAllocatorRef allocator, CFIndex order, CFRunLoopSourceContext *context) {
     CHECK_FOR_FORK();
     CFRunLoopSourceRef memory;
@@ -3483,7 +3496,8 @@ CF_PRIVATE void _CFRunLoopSourceWakeUpRunLoops(CFRunLoopSourceRef rls) {
 }
 
 /* CFRunLoopObserver */
-
+#pragma mark -
+#pragma mark CFRunLoopObserverRef
 static CFStringRef __CFRunLoopObserverCopyDescription(CFTypeRef cf) {	/* DOES CALLOUT */
     CFRunLoopObserverRef rlo = (CFRunLoopObserverRef)cf;
     CFStringRef result;
@@ -3529,7 +3543,8 @@ CFTypeID CFRunLoopObserverGetTypeID(void) {
     dispatch_once(&initOnce, ^{ __kCFRunLoopObserverTypeID = _CFRuntimeRegisterClass(&__CFRunLoopObserverClass); });
     return __kCFRunLoopObserverTypeID;
 }
-/// 创建Observer观察者
+
+#pragma mark - 创建Observer观察者
 CFRunLoopObserverRef CFRunLoopObserverCreate(CFAllocatorRef allocator, CFOptionFlags activities, Boolean repeats, CFIndex order, CFRunLoopObserverCallBack callout, CFRunLoopObserverContext *context) {
     CHECK_FOR_FORK();
     CFRunLoopObserverRef memory;
@@ -3724,7 +3739,8 @@ CFTypeID CFRunLoopTimerGetTypeID(void) {
     dispatch_once(&initOnce, ^{ __kCFRunLoopTimerTypeID = _CFRuntimeRegisterClass(&__CFRunLoopTimerClass); });
     return __kCFRunLoopTimerTypeID;
 }
-/// 创建 timer
+
+#pragma mark - 创建 timer 定时源
 CFRunLoopTimerRef CFRunLoopTimerCreate(CFAllocatorRef allocator, CFAbsoluteTime fireDate, CFTimeInterval interval, CFOptionFlags flags, CFIndex order, CFRunLoopTimerCallBack callout, CFRunLoopTimerContext *context) {
     CHECK_FOR_FORK();
     if (isnan(interval)) {
@@ -3742,6 +3758,7 @@ CFRunLoopTimerRef CFRunLoopTimerCreate(CFAllocatorRef allocator, CFAbsoluteTime 
     __CFSetValid(memory);
     __CFRunLoopTimerUnsetFiring(memory);
     __CFRunLoopLockInit(&memory->_lock);
+    // 初始化
     memory->_runLoop = NULL;
     memory->_rlModes = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeSetCallBacks);
     memory->_order = order;
@@ -3753,6 +3770,7 @@ CFRunLoopTimerRef CFRunLoopTimerCreate(CFAllocatorRef allocator, CFAbsoluteTime 
     memory->_fireTSR = 0ULL;
     uint64_t now2 = mach_absolute_time();
     CFAbsoluteTime now1 = CFAbsoluteTimeGetCurrent();
+    // 设置fireDate
     if (fireDate < now1) {
         memory->_fireTSR = now2;
     } else if (TIMER_INTERVAL_LIMIT < fireDate - now1) {
@@ -3760,6 +3778,7 @@ CFRunLoopTimerRef CFRunLoopTimerCreate(CFAllocatorRef allocator, CFAbsoluteTime 
     } else {
         memory->_fireTSR = now2 + __CFTimeIntervalToTSR(fireDate - now1);
     }
+    // 设置callback 和 context
     memory->_callout = callout;
     if (NULL != context) {
         if (context->retain) {
@@ -3925,6 +3944,7 @@ void CFRunLoopTimerInvalidate(CFRunLoopTimerRef rlt) {	/* DOES CALLOUT */
             // needs that, but we also lock it out here to keep
             // changes from occurring for this whole sequence.
             __CFRunLoopLock(rl);
+            // 移除所有的timer
             for (CFIndex idx = 0; idx < cnt; idx++) {
                 CFRunLoopRemoveTimer(rl, rlt, modes[idx]);
             }
