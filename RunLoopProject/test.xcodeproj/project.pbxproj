@@ -456,6 +456,7 @@
 				2EA2D582244E90890033EF53 /* CoreFoundation_Prefix.h */,
 				2EA2D58D244E90890033EF53 /* CoreFoundation.h */,
 				2EA2D559244E90870033EF53 /* ForFoundationOnly.h */,
+				2E2D966F24473AFD00D2BF47 /* main.m */,
 				2EA2D569244E90870033EF53 /* Makefile */,
 				2EA2D5E4244E908E0033EF53 /* MakefileLinux */,
 				2EA2D55A244E90870033EF53 /* MakefileVersion */,
@@ -464,7 +465,6 @@
 				2EA2D5D0244E908D0033EF53 /* README_CFLITE */,
 				2EA2D5E5244E908E0033EF53 /* SymbolAliases */,
 				2EA2D593244E90890033EF53 /* TargetConditionals.h */,
-				2E2D966F24473AFD00D2BF47 /* main.m */,
 			);
 			path = test;
 			sourceTree = "<group>";

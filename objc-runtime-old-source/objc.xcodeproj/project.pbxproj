@@ -818,7 +818,7 @@
 				TargetAttributes = {
 					2E3DB37B223FECA900942650 = {
 						CreatedOnToolsVersion = 10.1;
-						DevelopmentTeam = 3ZUHH2H7M8;
+						DevelopmentTeam = XJ97DB6RHL;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -1254,7 +1254,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				DEVELOPMENT_TEAM = 3ZUHH2H7M8;
+				DEVELOPMENT_TEAM = XJ97DB6RHL;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -1266,6 +1266,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = asdzxc.sad;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;

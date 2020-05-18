@@ -33,11 +33,11 @@ typedef uintptr_t cache_key_t;
 
 struct swift_class_t;
 
-
+// objc_cache.mm
 struct bucket_t {
 private:
-    cache_key_t _key;
-    IMP _imp;
+    cache_key_t _key; // SEL 作为key & mask
+    IMP _imp; // _imp 作为值
 
 public:
     inline cache_key_t key() const { return _key; }
@@ -56,9 +56,12 @@ public:
  (buckets定义在objc_cache的最后，说明这是一个可变长度的数组)
  */
 struct cache_t {
-    struct bucket_t *_buckets;
-    mask_t _mask;
-    mask_t _occupied;
+    struct bucket_t *_buckets; // 是一个散列表的数组，，装了很多 bucket_t ， 利用 SEL 作为key & mask 得出下标进行取值，
+                               // 产生冲突时，则下标等于 mask - 1 进行存放，如果等于0时 则 下标等于 mask,
+                               // 取值时，和设置类似，会做多一步就是判断 bucket 里面的 key == 传进来的key
+                               // 动态扩容时，先清空以前的数据，重新缓存数据
+    mask_t _mask; // 散列表的长度 - 1
+    mask_t _occupied; // 已经缓存的方法数据大小
 
 public:
     struct bucket_t *buckets();
