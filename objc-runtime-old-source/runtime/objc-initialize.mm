@@ -536,7 +536,7 @@ void _class_initialize(Class cls)
         @try
 #endif
         {
-            /// initialize 函数指针调用
+            /// 发送消息 + initialize
             callInitialize(cls);
 
             if (PrintInitializing) {
